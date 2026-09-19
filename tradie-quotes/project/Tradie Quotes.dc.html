@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><link rel="stylesheet" href="_ds/industry-50318528-d278-433d-951b-f37d9b588602/styles.css">
+<style>
+body{margin:0;background:var(--color-bg);font-family:var(--font-body)}
+a{color:var(--color-accent-700);text-decoration:none}a:hover{color:var(--color-accent)}
+@keyframes wv{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
+@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:.9}}
+::-webkit-scrollbar{width:0;height:0}
+</style></helmet>
+<div style="min-height:100vh;padding:40px 44px 64px;display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start;font-family:var(--font-body);color:var(--color-text)">
+
+  <div style="flex:1 1 300px;max-width:400px;display:flex;flex-direction:column;gap:20px">
+    <div>
+      <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)">Interactive prototype · v1</div>
+      <h1 style="font-size:38px;margin:6px 0 0;line-height:1.05">Quoting &amp; invoicing<br>for Australian trades</h1>
+      <p style="font-size:13px;line-height:1.6;color:var(--color-neutral-700);margin-top:10px">White-labelled here as <strong>Hale Electrical</strong>. Three screens built deep — lead inbox, quote builder, client detail — with the PDF, money and setup screens wired enough to walk the whole flow.</p>
+    </div>
+
+    <div class="card blueprint" style="gap:12px;padding:16px">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="card-kicker">Jump to a screen</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+          <button class="btn" style="font-size:12px;padding:6px 10px" style-hover="background:color-mix(in srgb, var(--color-text) 7%, transparent)" onClick="{{ n.go }}">{{ n.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div class="card blueprint" style="gap:10px;padding:16px">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="card-kicker">Try these</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;line-height:1.5;color:var(--color-neutral-700)">
+        <div><strong style="color:var(--color-text)">Drag</strong> a price-book card up onto the quote to add a line.</div>
+        <div><strong style="color:var(--color-text)">Hold the mic</strong> and it parses a whole spoken line item into rows you confirm.</div>
+        <div><strong style="color:var(--color-text)">Quote a lead</strong> from the inbox → preview PDF → send → accept → invoice → record a part payment.</div>
+      </div>
+    </div>
+
+    <div class="card blueprint" style="gap:10px;padding:16px">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div class="card-kicker">Assumptions</div>
+      <div style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;line-height:1.5;color:var(--color-neutral-700)">
+        <div>GST 10%, ABN on every document, AUD.</div>
+        <div>Leads arrive from the site chatbot and the AI secretary — the inbox is the home screen, money sits underneath it.</div>
+        <div>Quote shape is picked per quote: flat price, labour + materials, or itemised.</div>
+        <div>Every invoice chooses its own payment route: bank transfer on the PDF, or pay-now on the hosted link.</div>
+        <div>Theming reaches the PDF — brand name and accent are tweakable.</div>
+      </div>
+    </div>
+
+    <div style="font-size:12px;color:var(--color-neutral-600);line-height:1.6">Next: Android parity pass, overdue reminder ladder (7/14/30 days), recurring jobs for the cleaning/landscaping segment, and a second PDF template.</div>
+  </div>
+
+  <div style="flex:0 0 auto;display:flex;flex-direction:column;gap:14px;align-items:center">
+    <div ref="{{ rootRef }}" style="position:relative">
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+        <div style="height:100%;display:flex;flex-direction:column;background:var(--color-bg);font-family:var(--font-body);color:var(--color-text);position:relative">
+
+          <sc-if value="{{ isInbox }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;overflow:auto;padding:58px 16px 12px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                <div>
+                  <div style="font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--color-accent-700)">Quotes &amp; invoices</div>
+                  <div style="font-family:var(--font-heading);font-weight:600;font-size:26px;line-height:1.05;margin-top:2px">{{ brandName }}</div>
+                </div>
+                <div class="blueprint" style="width:42px;height:42px;display:grid;place-items:center;font-family:var(--font-heading);font-size:15px;color:var(--color-accent-700);flex:none;margin-top:6px">
+                  <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                  {{ brandInitials }}
+                </div>
+              </div>
+
+              <div class="blueprint" style="display:grid;grid-template-columns:repeat(3,1fr);margin-top:22px">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                <div style="padding:11px 10px">
+                  <div style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Owed</div>
+                  <div style="font-family:var(--font-heading);font-size:21px;line-height:1.1;margin-top:3px">{{ owedText }}</div>
+                </div>
+                <div style="padding:11px 10px;border-left:1px solid var(--color-divider)">
+                  <div style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Overdue</div>
+                  <div style="font-family:var(--font-heading);font-size:21px;line-height:1.1;margin-top:3px;color:var(--color-accent-800)">{{ overdueText }}</div>
+                </div>
+                <div style="padding:11px 10px;border-left:1px solid var(--color-divider)">
+                  <div style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Paid Sep</div>
+                  <div style="font-family:var(--font-heading);font-size:21px;line-height:1.1;margin-top:3px">{{ paidText }}</div>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:baseline;justify-content:space-between;margin:26px 0 10px">
+                <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)">{{ leadHeading }}</div>
+                <div style="font-size:11px;color:var(--color-neutral-600)">from chat &amp; calls</div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <sc-for list="{{ leads }}" as="l" hint-placeholder-count="3">
+                  <div class="card blueprint" style="padding:13px;gap:9px">
+                    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <sc-if value="{{ l.showSource }}" hint-placeholder-val="{{ true }}">
+                        <span class="tag tag-accent" style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase">{{ l.source }}</span>
+                      </sc-if>
+                      <span style="font-size:11px;color:var(--color-neutral-600);margin-left:auto">{{ l.when }}</span>
+                    </div>
+                    <div style="font-family:var(--font-heading);font-weight:600;font-size:18px;line-height:1.1">{{ l.name }}</div>
+                    <div style="font-size:13px;line-height:1.5;color:var(--color-neutral-700)">{{ l.snippet }}</div>
+                    <div style="display:flex;gap:8px;margin-top:3px">
+                      <button class="btn btn-primary" style="flex:1;min-height:38px" onClick="{{ l.quote }}">Quote this</button>
+                      <button class="btn btn-secondary" style="min-height:38px;padding-inline:14px" onClick="{{ l.open }}">Client</button>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin:26px 0 10px">Needs attention</div>
+              <div class="blueprint">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                <sc-for list="{{ attention }}" as="a" hint-placeholder-count="2">
+                  <div style="padding:12px 13px;border-top:1px solid var(--color-divider);display:flex;align-items:center;gap:10px">
+                    <div style="flex:1;min-width:0">
+                      <div style="font-family:var(--font-heading);font-size:15px">{{ a.ref }} · {{ a.who }}</div>
+                      <div style="font-size:11.5px;color:var(--color-neutral-600);margin-top:2px">{{ a.note }}</div>
+                    </div>
+                    <div style="text-align:right;flex:none">
+                      <div style="font-family:var(--font-heading);font-size:16px">{{ a.amount }}</div>
+                      <button class="btn btn-ghost" style="font-size:11px;padding:2px 0;margin-top:2px" onClick="{{ a.act }}">{{ a.action }}</button>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="height:8px"></div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isBuilder }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;display:flex;flex-direction:column;min-height:0">
+              <div style="padding:56px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--color-divider)">
+                <button class="btn btn-secondary btn-icon" onClick="{{ goInbox }}" aria-label="Back">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 5 8 12 15 19"></polyline></svg>
+                </button>
+                <div style="flex:1;min-width:0">
+                  <div style="font-family:var(--font-heading);font-size:18px;line-height:1.1">{{ quoteRef }}</div>
+                  <div style="font-size:11px;color:var(--color-neutral-600)">{{ statusLabel }} · {{ lineCountText }}</div>
+                </div>
+                <button class="btn btn-secondary" style="min-height:36px" onClick="{{ goPdf }}">Preview</button>
+              </div>
+
+              <div ref="{{ dropRef }}" style="flex:1;overflow:auto;padding:14px 16px 16px;position:relative">
+                <div class="blueprint" style="padding:11px 12px;display:flex;align-items:center;gap:10px">
+                  <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-family:var(--font-heading);font-size:16px">{{ clientName }}</div>
+                    <div style="font-size:11.5px;color:var(--color-neutral-600)">{{ clientAddress }}</div>
+                  </div>
+                  <span class="tag tag-outline" style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;flex:none">{{ clientOrigin }}</span>
+                </div>
+
+                <div style="margin-top:16px">
+                  <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin-bottom:7px">Quote shape</div>
+                  <div class="seg" style="width:100%">
+                    <sc-for list="{{ shapes }}" as="s" hint-placeholder-count="3">
+                      <label class="seg-opt" style="flex:1;justify-content:center;font-size:12px">
+                        <input type="radio" name="shape" checked="{{ s.on }}" onChange="{{ s.pick }}">{{ s.label }}
+                      </label>
+                    </sc-for>
+                  </div>
+                </div>
+
+                <div style="display:flex;align-items:baseline;justify-content:space-between;margin:20px 0 8px">
+                  <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)">{{ linesHeading }}</div>
+                  <span style="font-size:11px;color:var(--color-neutral-600)">{{ dropHint }}</span>
+                </div>
+
+                <div class="blueprint" style="position:relative;min-height:96px">
+                  <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                  <sc-for list="{{ lineRows }}" as="r" hint-placeholder-count="2">
+                    <div style="padding:11px 12px;border-bottom:1px solid var(--color-divider);display:flex;align-items:flex-start;gap:10px;animation:fu .22s ease-out">
+                      <div style="flex:1;min-width:0">
+                        <div style="font-size:13.5px;line-height:1.35">{{ r.label }}</div>
+                        <div style="font-size:11.5px;color:var(--color-neutral-600);margin-top:3px">{{ r.detail }}</div>
+                      </div>
+                      <div style="font-family:var(--font-heading);font-size:15px;flex:none">{{ r.amount }}</div>
+                      <button class="btn btn-ghost btn-icon" style="width:22px;height:22px;flex:none;color:var(--color-neutral-600)" onClick="{{ r.remove }}" aria-label="Remove">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
+                      </button>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ noLines }}" hint-placeholder-val="{{ false }}">
+                    <div style="padding:26px 16px;text-align:center;font-size:12.5px;color:var(--color-neutral-600);line-height:1.5">Drag items up from the price book,<br>or hold the mic and say the job.</div>
+                  </sc-if>
+                  <div style="padding:9px 12px;display:flex;gap:6px">
+                    <button class="btn btn-ghost" style="font-size:12px" onClick="{{ addBlank }}">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                      Blank line
+                    </button>
+                  </div>
+                  <sc-if value="{{ dropActive }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;inset:0;border:1.5px dashed var(--color-accent);background:color-mix(in srgb, var(--color-accent) 9%, transparent);display:grid;place-items:center;pointer-events:none">
+                      <span style="font-family:var(--font-heading);font-size:14px;color:var(--color-accent-800);background:var(--color-bg);padding:4px 10px">Drop to add</span>
+                    </div>
+                  </sc-if>
+                </div>
+
+                <div class="blueprint" style="margin-top:16px;padding:12px">
+                  <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                  <sc-if value="{{ voiceIdle }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;align-items:center;gap:12px">
+                      <button class="btn btn-primary" style="width:46px;height:46px;padding:0;flex:none;border-radius:0" onClick="{{ startVoice }}" aria-label="Speak a line item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><line x1="12" y1="18" x2="12" y2="21"></line></svg>
+                      </button>
+                      <div style="font-size:12.5px;line-height:1.45;color:var(--color-neutral-700)">Hold to speak a whole line item —<br><em style="color:var(--color-neutral-600)">“two hours labour at ninety plus a switchboard”</em></div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ voiceLive }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;align-items:center;gap:12px">
+                      <div style="display:flex;align-items:center;gap:3px;height:34px;flex:none">
+                        <sc-for list="{{ bars }}" as="b" hint-placeholder-count="7">
+                          <span style="width:3px;height:30px;background:var(--color-accent);display:block;animation:wv .9s ease-in-out infinite" style-hover=""></span>
+                        </sc-for>
+                      </div>
+                      <div style="flex:1;font-size:13px;line-height:1.45;min-height:34px">{{ heard }}<span style="animation:pulse 1s infinite">▌</span></div>
+                      <button class="btn btn-secondary" style="min-height:34px;flex:none" onClick="{{ stopVoice }}">Stop</button>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ voiceReview }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;gap:9px">
+                      <div style="font-size:11px;color:var(--color-neutral-600);line-height:1.45">Heard: “{{ heard }}”</div>
+                      <sc-for list="{{ parsed }}" as="p" hint-placeholder-count="2">
+                        <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--color-divider)">
+                          <div style="flex:1;min-width:0">
+                            <div style="font-size:13px">{{ p.label }}</div>
+                            <div style="font-size:11.5px;color:var(--color-neutral-600);margin-top:2px">{{ p.detail }}</div>
+                          </div>
+                          <span class="tag" style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;flex:none;background:{{ p.tagBg }};color:{{ p.tagFg }}">{{ p.conf }}</span>
+                        </div>
+                      </sc-for>
+                      <div style="display:flex;gap:8px;margin-top:2px">
+                        <button class="btn btn-primary" style="flex:1;min-height:38px" onClick="{{ acceptParsed }}">{{ acceptLabel }}</button>
+                        <button class="btn btn-secondary" style="min-height:38px" onClick="{{ discardParsed }}">Discard</button>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+
+                <div class="blueprint" style="margin-top:16px">
+                  <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                  <sc-for list="{{ totalRows }}" as="t" hint-placeholder-count="3">
+                    <div style="padding:9px 12px;border-bottom:1px solid var(--color-divider);display:flex;justify-content:space-between;font-size:13px">
+                      <span style="color:var(--color-neutral-700)">{{ t.label }}</span><span>{{ t.value }}</span>
+                    </div>
+                  </sc-for>
+                  <div style="padding:11px 12px;display:flex;justify-content:space-between;align-items:baseline;background:color-mix(in srgb, var(--color-accent) 8%, transparent)">
+                    <span style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-800)">Total inc GST</span>
+                    <span style="font-family:var(--font-heading);font-size:23px">{{ totalText }}</span>
+                  </div>
+                </div>
+                <div style="height:6px"></div>
+              </div>
+
+              <div style="border-top:1px solid var(--color-divider);background:var(--color-bg);flex:none">
+                <div style="display:flex;align-items:center;gap:8px;padding:9px 16px 7px">
+                  <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)">Price book</div>
+                  <span style="font-size:11px;color:var(--color-neutral-600);margin-left:auto">drag up to add</span>
+                </div>
+                <div style="display:flex;gap:10px;overflow:auto;padding:0 16px 12px;touch-action:pan-x">
+                  <sc-for list="{{ pricebook }}" as="p" hint-placeholder-count="5">
+                    <div class="blueprint" style="flex:none;width:136px;padding:10px;background:var(--color-surface);cursor:grab;touch-action:none;user-select:none" onPointerDown="{{ p.grab }}">
+                      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                      <div style="display:flex;gap:2px;margin-bottom:7px">
+                        <span style="width:3px;height:3px;background:var(--color-neutral-500);display:block"></span>
+                        <span style="width:3px;height:3px;background:var(--color-neutral-500);display:block"></span>
+                        <span style="width:3px;height:3px;background:var(--color-neutral-500);display:block"></span>
+                      </div>
+                      <div style="font-size:12.5px;line-height:1.3;min-height:33px">{{ p.label }}</div>
+                      <div style="font-family:var(--font-heading);font-size:15px;margin-top:6px">{{ p.rateText }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isPdf }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;display:flex;flex-direction:column;min-height:0">
+              <div style="padding:56px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--color-divider)">
+                <button class="btn btn-secondary btn-icon" onClick="{{ goBuilder }}" aria-label="Back">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 5 8 12 15 19"></polyline></svg>
+                </button>
+                <div style="flex:1;min-width:0">
+                  <div style="font-family:var(--font-heading);font-size:18px;line-height:1.1">{{ docTitle }}</div>
+                  <div style="font-size:11px;color:var(--color-neutral-600)">PDF · {{ quoteRef }}</div>
+                </div>
+                <span class="tag tag-neutral" style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase">A4</span>
+              </div>
+
+              <div style="flex:1;overflow:auto;padding:16px;background:var(--color-neutral-200)">
+                <div class="blueprint elev-md" style="background:#fff;padding:22px 20px 26px">
+                  <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding-bottom:14px;border-bottom:2px solid var(--color-accent)">
+                    <div>
+                      <div style="font-family:var(--font-heading);font-weight:600;font-size:22px;line-height:1;color:var(--color-accent-800)">{{ brandName }}</div>
+                      <div style="font-size:9.5px;line-height:1.6;color:var(--color-neutral-700);margin-top:6px">Lic. 148 220 · ABN 54 221 908 116<br>14 Dunstan Rd, Coburg VIC 3058<br>0412 884 210</div>
+                    </div>
+                    <div style="text-align:right;flex:none">
+                      <div style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--color-neutral-600)">{{ docTitle }}</div>
+                      <div style="font-family:var(--font-heading);font-size:17px;margin-top:2px">{{ quoteRef }}</div>
+                      <div style="font-size:9.5px;color:var(--color-neutral-700);margin-top:4px">{{ docDate }}<br>{{ docTerms }}</div>
+                    </div>
+                  </div>
+
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+                    <div>
+                      <div style="font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-600)">Prepared for</div>
+                      <div style="font-size:11.5px;line-height:1.5;margin-top:3px">{{ clientName }}<br>{{ clientAddress }}</div>
+                    </div>
+                    <div>
+                      <div style="font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-600)">Scope</div>
+                      <div style="font-size:11.5px;line-height:1.5;margin-top:3px">{{ docScope }}</div>
+                    </div>
+                  </div>
+
+                  <table class="table" style="margin-top:18px;font-size:11px">
+                    <thead><tr>
+                      <th style="font-size:8.5px;padding:5px 4px">Description</th>
+                      <th style="font-size:8.5px;padding:5px 4px;text-align:right;width:52px">Qty</th>
+                      <th style="font-size:8.5px;padding:5px 4px;text-align:right;width:58px">Rate</th>
+                      <th style="font-size:8.5px;padding:5px 4px;text-align:right;width:66px">Amount</th>
+                    </tr></thead>
+                    <tbody>
+                      <sc-for list="{{ lineRows }}" as="r" hint-placeholder-count="3">
+                        <tr>
+                          <td style="padding:6px 4px;line-height:1.35">{{ r.label }}</td>
+                          <td style="padding:6px 4px;text-align:right">{{ r.qtyText }}</td>
+                          <td style="padding:6px 4px;text-align:right">{{ r.rateText }}</td>
+                          <td style="padding:6px 4px;text-align:right">{{ r.amount }}</td>
+                        </tr>
+                      </sc-for>
+                    </tbody>
+                  </table>
+
+                  <div style="display:flex;justify-content:flex-end;margin-top:12px">
+                    <div style="width:210px">
+                      <sc-for list="{{ totalRows }}" as="t" hint-placeholder-count="3">
+                        <div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid var(--color-divider)">
+                          <span style="color:var(--color-neutral-700)">{{ t.label }}</span><span>{{ t.value }}</span>
+                        </div>
+                      </sc-for>
+                      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 8px;margin-top:6px;background:var(--color-accent);color:#fff">
+                        <span style="font-size:9px;letter-spacing:.12em;text-transform:uppercase">Total inc GST</span>
+                        <span style="font-family:var(--font-heading);font-size:17px">{{ totalText }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="margin-top:20px;padding-top:12px;border-top:1px solid var(--color-divider);display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                    <div>
+                      <div style="font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-600)">Payment</div>
+                      <div style="font-size:10.5px;line-height:1.6;margin-top:3px;color:var(--color-neutral-800)">{{ payBlurb }}</div>
+                    </div>
+                    <div>
+                      <div style="font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-600)">Terms</div>
+                      <div style="font-size:10.5px;line-height:1.6;margin-top:3px;color:var(--color-neutral-800)">Quote valid 30 days. Variations quoted separately. All work to AS/NZS 3000.</div>
+                    </div>
+                  </div>
+                </div>
+                <div style="height:10px"></div>
+              </div>
+
+              <div style="flex:none;border-top:1px solid var(--color-divider);padding:12px 16px 14px;display:flex;gap:8px">
+                <button class="btn btn-secondary" style="min-height:44px;padding-inline:14px" onClick="{{ goBuilder }}">Edit</button>
+                <button class="btn btn-primary" style="flex:1;min-height:44px" onClick="{{ openSend }}">{{ sendLabel }}</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isMoney }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;overflow:auto;padding:58px 16px 12px">
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:26px;line-height:1.05">Money</div>
+              <div class="seg" style="width:100%;margin-top:14px">
+                <sc-for list="{{ moneyTabs }}" as="m" hint-placeholder-count="2">
+                  <label class="seg-opt" style="flex:1;justify-content:center;font-size:12.5px">
+                    <input type="radio" name="moneytab" checked="{{ m.on }}" onChange="{{ m.pick }}">{{ m.label }}
+                  </label>
+                </sc-for>
+              </div>
+              <div class="blueprint" style="margin-top:18px">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                <sc-for list="{{ docs }}" as="d" hint-placeholder-count="4">
+                  <div style="padding:13px;border-bottom:1px solid var(--color-divider);display:flex;align-items:center;gap:11px;cursor:pointer" onClick="{{ d.open }}" style-hover="background:color-mix(in srgb, var(--color-text) 4%, transparent)">
+                    <div style="flex:1;min-width:0">
+                      <div style="display:flex;align-items:center;gap:7px">
+                        <span style="font-family:var(--font-heading);font-size:15px">{{ d.ref }}</span>
+                        <span class="tag" style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;background:{{ d.tagBg }};color:{{ d.tagFg }}">{{ d.status }}</span>
+                      </div>
+                      <div style="font-size:12.5px;color:var(--color-neutral-700);margin-top:3px">{{ d.who }}</div>
+                      <div style="font-size:11px;color:var(--color-neutral-600);margin-top:2px">{{ d.note }}</div>
+                    </div>
+                    <div style="text-align:right;flex:none">
+                      <div style="font-family:var(--font-heading);font-size:16px">{{ d.amount }}</div>
+                      <div style="font-size:10.5px;color:var(--color-neutral-600);margin-top:2px">{{ d.sub }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="height:8px"></div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isClient }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;overflow:auto;padding:56px 0 12px">
+              <div style="padding:0 16px;display:flex;align-items:center;gap:10px">
+                <button class="btn btn-secondary btn-icon" onClick="{{ goInbox }}" aria-label="Back">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 5 8 12 15 19"></polyline></svg>
+                </button>
+                <span style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-600)">Client</span>
+              </div>
+
+              <div style="padding:14px 16px 0">
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:30px;line-height:1.02">{{ clientName }}</div>
+                <div style="font-size:12.5px;color:var(--color-neutral-700);margin-top:5px">{{ clientAddress }}</div>
+                <div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap">
+                  <span class="tag tag-accent" style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase">Repeat · 4 jobs</span>
+                  <span class="tag tag-outline" style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase">{{ clientOrigin }}</span>
+                </div>
+              </div>
+
+              <div style="padding:16px 16px 0">
+                <div class="blueprint" style="display:grid;grid-template-columns:1fr 1fr">
+                  <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                  <div style="padding:11px 12px">
+                    <div style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Outstanding</div>
+                    <div style="font-family:var(--font-heading);font-size:21px;margin-top:3px">{{ clientOwing }}</div>
+                  </div>
+                  <div style="padding:11px 12px;border-left:1px solid var(--color-divider)">
+                    <div style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-neutral-600)">Lifetime</div>
+                    <div style="font-family:var(--font-heading);font-size:21px;margin-top:3px">$8,430</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:12px">
+                  <button class="btn btn-primary" style="flex:1;min-height:44px" onClick="{{ quoteClient }}">New quote</button>
+                  <button class="btn btn-secondary" style="min-height:44px;padding-inline:16px" onClick="{{ toastCall }}">Call</button>
+                  <button class="btn btn-secondary" style="min-height:44px;padding-inline:16px" onClick="{{ toastMsg }}">Message</button>
+                </div>
+              </div>
+
+              <div style="padding:26px 16px 8px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700)">Activity</div>
+              <div style="padding:0 16px">
+                <sc-for list="{{ activity }}" as="a" hint-placeholder-count="6">
+                  <div style="display:flex;gap:12px;align-items:stretch">
+                    <div style="flex:none;width:26px;display:flex;flex-direction:column;align-items:center">
+                      <span style="width:9px;height:9px;border:1px solid var(--color-accent);background:{{ a.dot }};display:block;margin-top:5px"></span>
+                      <span style="flex:1;width:1px;background:var(--color-divider);display:block"></span>
+                    </div>
+                    <div style="flex:1;padding-bottom:16px;min-width:0">
+                      <div style="display:flex;align-items:baseline;gap:8px">
+                        <span style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">{{ a.kind }}</span>
+                        <span style="font-size:11px;color:var(--color-neutral-600);margin-left:auto">{{ a.when }}</span>
+                      </div>
+                      <div style="font-size:13px;line-height:1.45;margin-top:3px">{{ a.text }}</div>
+                      <sc-if value="{{ a.hasQuote }}" hint-placeholder-val="{{ false }}">
+                        <div class="blueprint" style="margin-top:7px;padding:8px 10px;display:flex;align-items:center;gap:8px">
+                          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                          <span style="font-size:11.5px;flex:1">{{ a.docRef }}</span>
+                          <span style="font-family:var(--font-heading);font-size:14px">{{ a.docAmount }}</span>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isSetup }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;overflow:auto;padding:58px 16px 12px">
+              <div style="font-family:var(--font-heading);font-weight:600;font-size:26px;line-height:1.05">Business</div>
+              <div class="blueprint" style="margin-top:16px;padding:14px;display:flex;gap:13px;align-items:center">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                <div style="width:62px;height:62px;flex:none;background:repeating-linear-gradient(45deg,var(--color-neutral-200) 0 5px,var(--color-neutral-300) 5px 10px);display:grid;place-items:center;font:10px/1.2 ui-monospace,Menlo,monospace;color:var(--color-neutral-700);text-align:center">logo</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-family:var(--font-heading);font-size:18px">{{ brandName }}</div>
+                  <div style="font-size:11.5px;color:var(--color-neutral-600);margin-top:2px">Brand colour and logo carry through to every PDF</div>
+                </div>
+              </div>
+
+              <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px">
+                <sc-for list="{{ setupFields }}" as="f" hint-placeholder-count="4">
+                  <div class="field">
+                    <label>{{ f.label }}</label>
+                    <input class="input" value="{{ f.value }}" readOnly="{{ true }}">
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-700);margin:24px 0 9px">Connected services</div>
+              <div class="blueprint">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                <sc-for list="{{ services }}" as="s" hint-placeholder-count="3">
+                  <div style="padding:12px 13px;border-bottom:1px solid var(--color-divider);display:flex;align-items:center;gap:10px">
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:13.5px">{{ s.name }}</div>
+                      <div style="font-size:11px;color:var(--color-neutral-600);margin-top:2px">{{ s.note }}</div>
+                    </div>
+                    <span class="tag" style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;flex:none;background:{{ s.tagBg }};color:{{ s.tagFg }}">{{ s.state }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="height:8px"></div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showTabs }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:none;border-top:1px solid var(--color-divider);background:var(--color-bg);display:grid;grid-template-columns:repeat(4,1fr);padding:7px 4px 30px">
+              <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+                <button style="background:none;border:0;padding:5px 0 3px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:{{ t.color }};font-family:var(--font-body)" onClick="{{ t.go }}">
+                  <span style="width:17px;height:17px;border:1.5px solid currentColor;display:block;border-radius:{{ t.glyphRadius }}"></span>
+                  <span style="font-size:9.5px;letter-spacing:.06em;text-transform:uppercase">{{ t.label }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ sheetSend }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 45%, transparent);display:flex;flex-direction:column;justify-content:flex-end;z-index:80" onClick="{{ closeSheet }}">
+              <div style="background:var(--color-bg);border-top:1px solid var(--color-divider);padding:18px 16px 34px;animation:fu .2s ease-out" onClick="{{ stop }}">
+                <div style="font-family:var(--font-heading);font-size:22px;line-height:1.1">Send {{ docTitleLower }}</div>
+                <div style="font-size:12.5px;color:var(--color-neutral-700);margin-top:4px">{{ clientName }} · {{ totalText }}</div>
+                <div style="display:flex;flex-direction:column;gap:9px;margin-top:16px">
+                  <sc-for list="{{ sendOptions }}" as="o" hint-placeholder-count="3">
+                    <button class="btn btn-secondary" style="min-height:52px;justify-content:flex-start;text-align:left;padding:10px 13px" onClick="{{ o.pick }}">
+                      <span style="display:flex;flex-direction:column;gap:2px;align-items:flex-start">
+                        <span style="font-size:14px">{{ o.label }}</span>
+                        <span style="font-family:var(--font-body);font-weight:400;font-size:11.5px;color:var(--color-neutral-600)">{{ o.note }}</span>
+                      </span>
+                    </button>
+                  </sc-for>
+                </div>
+                <button class="btn btn-ghost btn-block" style="min-height:40px" onClick="{{ closeSheet }}">Cancel</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ sheetPay }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;inset:0;background:color-mix(in srgb, var(--color-neutral-900) 45%, transparent);display:flex;flex-direction:column;justify-content:flex-end;z-index:80" onClick="{{ closeSheet }}">
+              <div style="background:var(--color-bg);border-top:1px solid var(--color-divider);padding:18px 16px 34px;animation:fu .2s ease-out" onClick="{{ stop }}">
+                <div style="font-family:var(--font-heading);font-size:22px;line-height:1.1">Record payment</div>
+                <div style="font-size:12.5px;color:var(--color-neutral-700);margin-top:4px">{{ payTarget }} · {{ payOutstanding }} outstanding</div>
+                <div style="display:flex;flex-direction:column;gap:9px;margin-top:16px">
+                  <sc-for list="{{ payOptions }}" as="o" hint-placeholder-count="3">
+                    <button class="btn btn-secondary" style="min-height:48px;justify-content:space-between;padding:10px 13px" onClick="{{ o.pick }}">
+                      <span style="font-size:14px">{{ o.label }}</span>
+                      <span style="font-family:var(--font-heading);font-size:15px">{{ o.amount }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+                <button class="btn btn-ghost btn-block" style="min-height:40px" onClick="{{ closeSheet }}">Cancel</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;left:16px;right:16px;bottom:96px;z-index:90;animation:fu .2s ease-out">
+              <div class="blueprint" style="background:var(--color-accent-900);color:#fff;padding:11px 13px;font-size:12.5px;line-height:1.4;box-shadow:var(--shadow-md)">
+                <i class="corner tl" style="color:rgba(255,255,255,.5)"></i><i class="corner tr" style="color:rgba(255,255,255,.5)"></i><i class="corner bl" style="color:rgba(255,255,255,.5)"></i><i class="corner br" style="color:rgba(255,255,255,.5)"></i>
+                {{ toast }}
+              </div>
+            </div>
+          </sc-if>
+
+        </div>
+      </x-import>
+
+      <sc-if value="{{ hasDrag }}" hint-placeholder-val="{{ false }}">
+        <div style="position:fixed;left:0;top:0;z-index:999;pointer-events:none;transform:{{ dragTransform }}">
+          <div class="blueprint elev-lg" style="width:136px;padding:10px;background:var(--color-bg);opacity:.95">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="font-size:12.5px;line-height:1.3">{{ dragLabel }}</div>
+            <div style="font-family:var(--font-heading);font-size:15px;margin-top:6px">{{ dragRate }}</div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="font-size:11.5px;color:var(--color-neutral-600);max-width:402px;text-align:center;line-height:1.5">iOS frame shown; Android build is the same structure with a bottom nav bar and Material gestures.</div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1000},&quot;brandName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Hale Electrical&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;White label&quot;},&quot;brandColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#5980a6&quot;,&quot;options&quot;:[&quot;#5980a6&quot;,&quot;#2f6b52&quot;,&quot;#8a5a2b&quot;,&quot;#4a4f7a&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;White label&quot;},&quot;defaultShape&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Flat price&quot;,&quot;Labour + materials&quot;,&quot;Itemised&quot;],&quot;default&quot;:&quot;Labour + materials&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Quoting&quot;},&quot;depositPercent&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:50,&quot;step&quot;:5,&quot;default&quot;:20,&quot;unit&quot;:&quot;%&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Quoting&quot;},&quot;showLeadSources&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Quoting&quot;}}">
+const AUD = n => '$' + n.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const AUD2 = n => '$' + n.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const BOOK = [
+  { label: 'Labour — licensed electrician', rate: 98, unit: 'hr' },
+  { label: 'Apprentice labour', rate: 62, unit: 'hr' },
+  { label: 'LED downlight, dimmable', rate: 74, unit: 'ea' },
+  { label: 'Safety switch (RCD) 2-pole', rate: 86, unit: 'ea' },
+  { label: 'Double GPO, install + make good', rate: 168, unit: 'ea' },
+  { label: 'Switchboard upgrade, 12-way', rate: 1240, unit: 'ea' },
+  { label: 'Call-out fee (metro)', rate: 88, unit: 'ea' },
+];
+
+const LEADS = [
+  { id: 'l1', name: 'Marcus Webb', source: 'Web chat', when: '12 min ago', snippet: '“Six downlights and a dimmer in the living room — can you do it this week?”', address: '14 Ashgrove St, Brunswick VIC', origin: 'From web chat' },
+  { id: 'l2', name: 'Priya Nandan', source: 'AI secretary · call', when: '1 hr ago', snippet: 'Missed call, transcribed: switchboard tripping when the oven runs. Wants a quote before Friday. 0:48', address: '3/220 Nicholson St, Fitzroy VIC', origin: 'From phone call' },
+  { id: 'l3', name: 'Bayside Cafe', source: 'Web chat', when: 'Yesterday', snippet: '“Three new power points behind the counter, plus check the RCD.”', address: '88 Beach Rd, Sandringham VIC', origin: 'From web chat' },
+];
+
+const SPEECH = 'two hours labour at ninety plus a switchboard upgrade';
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.rootRef = React.createRef();
+    this.dropRef = React.createRef();
+    this.timers = [];
+    this.state = {
+      screen: 'inbox',
+      shape: null,
+      lines: [
+        { id: 1, label: 'Labour — licensed electrician', qty: 3, unit: 'hr', rate: 98 },
+        { id: 2, label: 'LED downlight, dimmable', qty: 6, unit: 'ea', rate: 74 },
+      ],
+      nextId: 3,
+      lead: LEADS[0],
+      voice: 'idle',
+      heard: '',
+      drag: null,
+      dropActive: false,
+      sheet: null,
+      status: 'draft',
+      moneyTab: 'quotes',
+      invoiceRef: null,
+      paid: 0,
+      toast: null,
+    };
+  }
+
+  componentDidMount() {
+    this.applyTheme();
+    this.onMove = e => {
+      if (!this.state.drag) return;
+      const r = this.dropRef.current && this.dropRef.current.getBoundingClientRect();
+      const over = !!r && e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom;
+      this.setState(s => ({ drag: { ...s.drag, x: e.clientX, y: e.clientY }, dropActive: over }));
+    };
+    this.onUp = e => {
+      const d = this.state.drag;
+      if (!d) return;
+      const r = this.dropRef.current && this.dropRef.current.getBoundingClientRect();
+      const over = !!r && e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom;
+      this.setState({ drag: null, dropActive: false });
+      if (over) this.addLine({ label: d.label, qty: 1, unit: d.unit, rate: d.rate }, d.label.split(',')[0] + ' added');
+    };
+    window.addEventListener('pointermove', this.onMove);
+    window.addEventListener('pointerup', this.onUp);
+  }
+
+  componentDidUpdate() { this.applyTheme(); }
+
+  componentWillUnmount() {
+    window.removeEventListener('pointermove', this.onMove);
+    window.removeEventListener('pointerup', this.onUp);
+    this.timers.forEach(clearTimeout);
+  }
+
+  applyTheme() {
+    const a = this.props.brandColor || '#5980a6';
+    const r = this.rootRef.current;
+    if (!r || r.dataset.accent === a) return;
+    r.dataset.accent = a;
+    const set = (k, v) => r.style.setProperty(k, v);
+    set('--color-accent', a);
+    set('--color-accent-100', `color-mix(in oklch, ${a} 13%, #fff)`);
+    set('--color-accent-200', `color-mix(in oklch, ${a} 26%, #fff)`);
+    set('--color-accent-600', `color-mix(in oklch, ${a} 88%, #000)`);
+    set('--color-accent-700', `color-mix(in oklch, ${a} 72%, #000)`);
+    set('--color-accent-800', `color-mix(in oklch, ${a} 55%, #000)`);
+    set('--color-accent-900', `color-mix(in oklch, ${a} 34%, #000)`);
+  }
+
+  flash(msg) {
+    this.setState({ toast: msg });
+    const t = setTimeout(() => this.setState({ toast: null }), 2600);
+    this.timers.push(t);
+  }
+
+  addLine(line, msg) {
+    this.setState(s => ({ lines: [...s.lines, { ...line, id: s.nextId }], nextId: s.nextId + 1 }));
+    if (msg) this.flash(msg);
+  }
+
+  shapeNow() { return this.state.shape || this.props.defaultShape || 'Labour + materials'; }
+
+  startVoice() {
+    this.setState({ voice: 'listening', heard: '' });
+    const words = SPEECH.split(' ');
+    words.forEach((w, i) => {
+      const t = setTimeout(() => this.setState(s => ({ heard: (s.heard ? s.heard + ' ' : '') + w })), 220 * (i + 1));
+      this.timers.push(t);
+    });
+    const done = setTimeout(() => this.setState({ voice: 'review' }), 220 * words.length + 700);
+    this.timers.push(done);
+  }
+
+  totals() {
+    const sub = this.state.lines.reduce((t, l) => t + l.qty * l.rate, 0);
+    const dep = Math.round(sub * 1.1 * ((this.props.depositPercent ?? 20) / 100));
+    return { sub, gst: sub * 0.1, total: sub * 1.1, dep };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const t = this.totals();
+    const brandName = this.props.brandName || 'Hale Electrical';
+    const isInvoice = s.status === 'invoiced' || s.status === 'part-paid';
+    const shape = this.shapeNow();
+    const go = screen => () => this.setState({ screen, sheet: null });
+
+    const lineRows = s.lines.map(l => ({
+      ...l,
+      qtyText: l.qty + ' ' + l.unit,
+      rateText: AUD(l.rate),
+      detail: l.qty + ' ' + l.unit + ' × ' + AUD(l.rate),
+      amount: AUD(l.qty * l.rate),
+      remove: () => this.setState(st => ({ lines: st.lines.filter(x => x.id !== l.id) })),
+    }));
+
+    const totalRows = [
+      { label: 'Subtotal (ex GST)', value: AUD2(t.sub) },
+      { label: 'GST 10%', value: AUD2(t.gst) },
+    ];
+    if ((this.props.depositPercent ?? 20) > 0) {
+      totalRows.push({ label: 'Deposit on acceptance (' + (this.props.depositPercent ?? 20) + '%)', value: AUD2(t.dep) });
+    }
+    if (s.paid > 0) totalRows.push({ label: 'Payment received', value: '− ' + AUD2(s.paid) });
+
+    const parsed = [
+      { label: 'Labour — licensed electrician', detail: '2 hr × $90 · rate heard, not from price book', conf: 'High', tagBg: 'var(--color-accent-100)', tagFg: 'var(--color-accent-800)' },
+      { label: 'Switchboard upgrade, 12-way', detail: '1 ea × $1,240 · matched from price book', conf: 'Check', tagBg: 'var(--color-neutral-200)', tagFg: 'var(--color-neutral-800)' },
+    ];
+
+    const tab = (key, label, radius) => ({
+      label, glyphRadius: radius,
+      color: s.screen === key ? 'var(--color-accent)' : 'var(--color-neutral-600)',
+      go: go(key),
+    });
+
+    const statusTag = st => st === 'Overdue'
+      ? { tagBg: 'var(--color-accent-900)', tagFg: '#fff' }
+      : st === 'Paid' ? { tagBg: 'var(--color-neutral-200)', tagFg: 'var(--color-neutral-800)' }
+      : { tagBg: 'var(--color-accent-100)', tagFg: 'var(--color-accent-800)' };
+
+    const docs = s.moneyTab === 'quotes' ? [
+      { ref: s.invoiceRef ? 'QUO-0220' : 'QUO-0220', who: s.lead.name, status: s.status === 'draft' ? 'Draft' : s.status === 'sent' ? 'Viewed 2×' : 'Accepted', note: s.status === 'sent' ? 'Sent today · opened the link twice' : s.status === 'draft' ? 'Not sent yet' : 'Accepted — ready to invoice', amount: AUD(t.total), sub: shape, ...statusTag('x'),
+        open: () => { if (s.status === 'sent') { this.setState({ status: 'accepted' }); this.flash('Marked accepted — convert to invoice'); } else if (s.status === 'accepted') { this.setState({ status: 'invoiced', invoiceRef: 'INV-0143', moneyTab: 'invoices' }); this.flash('INV-0143 created from QUO-0220'); } else this.setState({ screen: 'builder' }); } },
+      { ref: 'QUO-0219', who: 'Bayside Cafe', status: 'Viewed 2×', note: 'Sent 3 days ago · follow up', amount: '$4,260', sub: 'Itemised', ...statusTag('x'), open: () => this.flash('Follow-up sent to Bayside Cafe') },
+      { ref: 'QUO-0216', who: 'D. Okafor', status: 'Declined', note: 'Went with another quote', amount: '$980', sub: 'Flat price', ...statusTag('Paid'), open: () => this.flash('Archived') },
+    ] : [
+      ...(s.invoiceRef ? [{ ref: s.invoiceRef, who: s.lead.name, status: s.paid > 0 ? 'Part paid' : 'Awaiting payment', note: s.paid > 0 ? AUD(s.paid) + ' received · balance due 30 Sep' : 'Due 30 Sep · pay-now link active', amount: AUD(t.total - s.paid), sub: s.paid > 0 ? 'balance' : 'inc GST', ...statusTag('x'), open: () => this.setState({ sheet: 'pay' }) }] : []),
+      { ref: 'INV-0142', who: 'Bayside Cafe', status: 'Overdue', note: '14 days overdue · 2 reminders sent', amount: '$1,980', sub: 'inc GST', ...statusTag('Overdue'), open: () => this.flash('Reminder sent to Bayside Cafe') },
+      { ref: 'INV-0141', who: 'K. Lindqvist', status: 'Paid', note: 'Card via link · 8 Sep', amount: '$2,640', sub: 'inc GST', ...statusTag('Paid'), open: () => this.flash('Receipt re-sent') },
+      { ref: 'INV-0139', who: 'Marcus Webb', status: 'Paid', note: 'Bank transfer · 1 Sep', amount: '$1,120', sub: 'inc GST', ...statusTag('Paid'), open: () => this.flash('Receipt re-sent') },
+    ];
+
+    return {
+      rootRef: this.rootRef,
+      dropRef: this.dropRef,
+      brandName,
+      brandInitials: brandName.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase(),
+
+      isInbox: s.screen === 'inbox',
+      isBuilder: s.screen === 'builder',
+      isPdf: s.screen === 'pdf',
+      isMoney: s.screen === 'money',
+      isClient: s.screen === 'client',
+      isSetup: s.screen === 'setup',
+      showTabs: s.screen === 'inbox' || s.screen === 'money' || s.screen === 'setup',
+
+      nav: [
+        { label: 'Lead inbox', go: go('inbox') },
+        { label: 'Quote builder', go: go('builder') },
+        { label: 'PDF preview', go: go('pdf') },
+        { label: 'Money', go: go('money') },
+        { label: 'Client', go: go('client') },
+        { label: 'Business setup', go: go('setup') },
+      ],
+
+      goInbox: go('inbox'), goBuilder: go('builder'), goPdf: go('pdf'),
+
+      owedText: AUD(12480 - s.paid), overdueText: '$1,980', paidText: AUD(9140 + s.paid),
+      leadHeading: 'New leads · ' + LEADS.length,
+      leads: LEADS.map(l => ({
+        ...l,
+        showSource: this.props.showLeadSources !== false,
+        quote: () => this.setState({ screen: 'builder', lead: l, status: 'draft' }),
+        open: () => this.setState({ screen: 'client', lead: l }),
+      })),
+      attention: [
+        { ref: 'INV-0142', who: 'Bayside Cafe', note: '14 days overdue · 2 reminders sent', amount: '$1,980', action: 'Remind', act: () => this.flash('Reminder sent — third notice, due immediately') },
+        { ref: 'QUO-0219', who: 'Bayside Cafe', note: 'Sent 3 days ago · opened twice', amount: '$4,260', action: 'Follow up', act: () => this.flash('Follow-up message drafted') },
+      ],
+
+      quoteRef: isInvoice ? (s.invoiceRef || 'INV-0143') : 'QUO-0220',
+      statusLabel: s.status === 'draft' ? 'Draft' : s.status === 'sent' ? 'Sent · viewed' : s.status === 'accepted' ? 'Accepted' : 'Invoice',
+      lineCountText: s.lines.length + (s.lines.length === 1 ? ' line' : ' lines'),
+      clientName: s.lead.name, clientAddress: s.lead.address, clientOrigin: s.lead.origin,
+      clientOwing: s.invoiceRef ? AUD(t.total - s.paid) : '$0',
+
+      shapes: ['Flat price', 'Labour + materials', 'Itemised'].map(label => ({
+        label: label === 'Labour + materials' ? 'Labour + mat.' : label,
+        on: shape === label,
+        pick: () => this.setState({ shape: label }),
+      })),
+      linesHeading: shape === 'Flat price' ? 'The price' : shape === 'Itemised' ? 'Items' : 'Labour + materials',
+      dropHint: s.lines.length ? 'swipe × to remove' : '',
+      lineRows, noLines: s.lines.length === 0,
+      addBlank: () => this.addLine({ label: 'New line', qty: 1, unit: 'ea', rate: 0 }),
+
+      voiceIdle: s.voice === 'idle', voiceLive: s.voice === 'listening', voiceReview: s.voice === 'review',
+      bars: [1, 2, 3, 4, 5, 6, 7].map(n => ({ n })),
+      heard: s.heard,
+      startVoice: () => this.startVoice(),
+      stopVoice: () => this.setState({ voice: 'idle', heard: '' }),
+      parsed,
+      acceptLabel: 'Add 2 items',
+      acceptParsed: () => {
+        this.setState(st => ({
+          lines: [...st.lines,
+            { id: st.nextId, label: 'Labour — licensed electrician', qty: 2, unit: 'hr', rate: 90 },
+            { id: st.nextId + 1, label: 'Switchboard upgrade, 12-way', qty: 1, unit: 'ea', rate: 1240 }],
+          nextId: st.nextId + 2, voice: 'idle', heard: '',
+        }));
+        this.flash('2 lines added from voice');
+      },
+      discardParsed: () => this.setState({ voice: 'idle', heard: '' }),
+
+      pricebook: BOOK.map(b => ({
+        ...b,
+        rateText: AUD(b.rate) + ' / ' + b.unit,
+        grab: e => { e.preventDefault(); this.setState({ drag: { ...b, x: e.clientX, y: e.clientY } }); },
+      })),
+      hasDrag: !!s.drag, dropActive: s.dropActive,
+      dragTransform: s.drag ? `translate(${s.drag.x - 68}px, ${s.drag.y - 34}px)` : 'none',
+      dragLabel: s.drag ? s.drag.label : '',
+      dragRate: s.drag ? AUD(s.drag.rate) + ' / ' + s.drag.unit : '',
+
+      totalRows, totalText: AUD2(t.total),
+
+      docTitle: isInvoice ? 'Tax Invoice' : 'Quotation',
+      docTitleLower: isInvoice ? 'invoice' : 'quote',
+      docDate: '16 September 2026',
+      docTerms: isInvoice ? 'Due 30 Sep 2026' : 'Valid 30 days',
+      docScope: shape === 'Flat price' ? 'Supply and install as discussed — one fixed price.' : 'Supply and install, including labour, materials and testing.',
+      payBlurb: isInvoice
+        ? 'Hale Electrical · BSB 063-118 · Acct 1084 2210. Or tap Pay now on your invoice link (card or Apple Pay).'
+        : 'Deposit of ' + AUD2(t.dep) + ' on acceptance. Balance on completion by transfer or card.',
+      sendLabel: isInvoice ? 'Send invoice' : 'Send quote',
+      openSend: () => this.setState({ sheet: 'send' }),
+      sheetSend: s.sheet === 'send', sheetPay: s.sheet === 'pay',
+      closeSheet: () => this.setState({ sheet: null }),
+      stop: e => e.stopPropagation(),
+      sendOptions: [
+        { label: 'Share sheet', note: 'SMS, WhatsApp or anything installed', pick: () => { this.setState({ sheet: null, status: 'sent', screen: 'money', moneyTab: 'quotes' }); this.flash('Sent via SMS · delivery tracked'); } },
+        { label: 'Copy accept link', note: 'Client taps Accept, or Pay now on invoices', pick: () => { this.setState({ sheet: null, status: 'sent', screen: 'money', moneyTab: 'quotes' }); this.flash('Link copied · we will tell you when it is opened'); } },
+        { label: 'Email with a message', note: 'Editable note, PDF attached', pick: () => { this.setState({ sheet: null, status: 'sent', screen: 'money', moneyTab: 'quotes' }); this.flash('Emailed · delivery and viewed status will appear here'); } },
+      ],
+      payTarget: s.invoiceRef || 'INV-0143',
+      payOutstanding: AUD2(t.total - s.paid),
+      payOptions: [
+        { label: 'Paid in full', amount: AUD2(t.total - s.paid), pick: () => { this.setState({ paid: t.total, sheet: null, status: 'part-paid' }); this.flash('Marked paid in full · receipt sent'); } },
+        { label: 'Deposit only', amount: AUD2(t.dep), pick: () => { this.setState({ paid: t.dep, sheet: null, status: 'part-paid' }); this.flash('Deposit recorded · balance due 30 Sep'); } },
+        { label: 'Other amount', amount: 'enter', pick: () => { this.setState({ paid: Math.round((t.total - s.paid) / 2), sheet: null, status: 'part-paid' }); this.flash('Part payment recorded'); } },
+      ],
+
+      moneyTabs: [
+        { label: 'Quotes', on: s.moneyTab === 'quotes', pick: () => this.setState({ moneyTab: 'quotes' }) },
+        { label: 'Invoices', on: s.moneyTab === 'invoices', pick: () => this.setState({ moneyTab: 'invoices' }) },
+      ],
+      docs,
+
+      quoteClient: () => this.setState({ screen: 'builder' }),
+      toastCall: () => this.flash('Calling ' + s.lead.name + ' — the secretary will log it'),
+      toastMsg: () => this.flash('Message thread opened'),
+      activity: [
+        { kind: 'Web chat', when: '12 min ago', text: '“Six downlights and a dimmer in the living room — can you do it this week?” Bot captured address and preferred day.', dot: 'var(--color-accent)', hasQuote: false },
+        { kind: 'Quote sent', when: '2 Sep', text: 'Quote for oven circuit and RCD replacement — accepted same day.', dot: 'var(--color-accent-200)', hasQuote: true, docRef: 'QUO-0211 · accepted', docAmount: '$1,120' },
+        { kind: 'Payment', when: '1 Sep', text: 'Bank transfer received, receipt sent automatically.', dot: 'var(--color-bg)', hasQuote: true, docRef: 'INV-0139 · paid', docAmount: '$1,120' },
+        { kind: 'Call', when: '28 Aug', text: 'AI secretary answered, 1:12 — booked Tuesday morning, added to calendar.', dot: 'var(--color-bg)', hasQuote: false },
+        { kind: 'Job', when: '12 Jul', text: 'Kitchen rewire, two days on site. 6 photos attached.', dot: 'var(--color-bg)', hasQuote: false },
+      ],
+
+      setupFields: [
+        { label: 'Trading name', value: brandName },
+        { label: 'ABN', value: '54 221 908 116' },
+        { label: 'Electrical licence', value: '148 220 (VIC)' },
+        { label: 'GST', value: 'Registered · 10% on all items' },
+        { label: 'Bank details on PDF', value: 'BSB 063-118 · Acct 1084 2210' },
+      ],
+      services: [
+        { name: 'Website chat bot', note: 'Captures job details, address, urgency', state: 'Live', tagBg: 'var(--color-accent-100)', tagFg: 'var(--color-accent-800)' },
+        { name: 'AI secretary', note: 'Answers missed calls, transcribes, creates leads', state: 'Live', tagBg: 'var(--color-accent-100)', tagFg: 'var(--color-accent-800)' },
+        { name: 'Pay by card on links', note: '1.7% + 30c, passed on or absorbed', state: 'On', tagBg: 'var(--color-accent-100)', tagFg: 'var(--color-accent-800)' },
+        { name: 'Accounting export', note: 'Xero / MYOB CSV', state: 'Not set', tagBg: 'var(--color-neutral-200)', tagFg: 'var(--color-neutral-800)' },
+      ],
+
+      tabs: [tab('inbox', 'Inbox', '0'), tab('money', 'Money', '0'), tab('client', 'Clients', '50%'), tab('setup', 'Business', '0')],
+
+      hasToast: !!s.toast, toast: s.toast,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

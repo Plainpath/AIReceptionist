@@ -1,0 +1,183 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Business {
+  id             String   @id @default(cuid())
+  name           String
+  accentColor    String   @default("#5980a6")
+  abn            String
+  licence        String?
+  gstRegistered  Boolean  @default(true)
+  bsb            String?
+  accountNumber  String?
+  address        String?
+  phone          String?
+  depositPercent Int      @default(20)
+  defaultShape   String   @default("Labour + materials")
+  showLeadSources Boolean @default(true)
+  nextQuoteSeq   Int      @default(220)
+  nextInvoiceSeq Int      @default(143)
+  createdAt      DateTime @default(now())
+
+  users      User[]
+  clients    Client[]
+  leads      Lead[]
+  priceBook  PriceBookItem[]
+  quotes     Quote[]
+  invoices   Invoice[]
+  activity   ActivityEvent[]
+  services   ConnectedService[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  businessId   String
+  business     Business @relation(fields: [businessId], references: [id])
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+}
+
+model Client {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+  name       String
+  address    String?
+  origin     String   @default("Manual")
+  createdAt  DateTime @default(now())
+
+  leads    Lead[]
+  quotes   Quote[]
+  invoices Invoice[]
+  activity ActivityEvent[]
+}
+
+model Lead {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+  clientId   String
+  client     Client   @relation(fields: [clientId], references: [id])
+  source     String
+  snippet    String
+  status     String   @default("New")
+  receivedAt DateTime @default(now())
+
+  quotes Quote[]
+}
+
+model PriceBookItem {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+  label      String
+  rate       Float
+  unit       String
+  sortOrder  Int      @default(0)
+}
+
+model Quote {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+  clientId   String
+  client     Client   @relation(fields: [clientId], references: [id])
+  leadId     String?
+  lead       Lead?    @relation(fields: [leadId], references: [id])
+  ref        String   @unique
+  shape      String   @default("Labour + materials")
+  status     String   @default("Draft")
+  viewedCount Int     @default(0)
+  shareToken String?  @unique
+  createdAt  DateTime @default(now())
+  sentAt     DateTime?
+
+  lines    QuoteLine[]
+  invoice  Invoice?
+  activity ActivityEvent[]
+}
+
+model QuoteLine {
+  id        String @id @default(cuid())
+  quoteId   String
+  quote     Quote  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  label     String
+  qty       Float
+  unit      String
+  rate      Float
+  sortOrder Int    @default(0)
+}
+
+model Invoice {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+  clientId   String
+  client     Client   @relation(fields: [clientId], references: [id])
+  quoteId    String?  @unique
+  quote      Quote?   @relation(fields: [quoteId], references: [id])
+  ref        String   @unique
+  status     String   @default("Awaiting payment")
+  shareToken String?  @unique
+  viewedCount Int     @default(0)
+  createdAt  DateTime @default(now())
+  dueDate    DateTime?
+
+  lines    InvoiceLine[]
+  payments Payment[]
+  activity ActivityEvent[]
+}
+
+model InvoiceLine {
+  id        String  @id @default(cuid())
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  label     String
+  qty       Float
+  unit      String
+  rate      Float
+  sortOrder Int     @default(0)
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  amount    Float
+  method    String
+  note      String?
+  paidAt    DateTime @default(now())
+}
+
+model ActivityEvent {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+  clientId   String
+  client     Client   @relation(fields: [clientId], references: [id])
+  kind       String
+  text       String
+  occurredAt DateTime @default(now())
+  quoteId    String?
+  quote      Quote?   @relation(fields: [quoteId], references: [id])
+  invoiceId  String?
+  invoice    Invoice? @relation(fields: [invoiceId], references: [id])
+  amount     Float?
+}
+
+model ConnectedService {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+  name       String
+  note       String?
+  state      String
+}

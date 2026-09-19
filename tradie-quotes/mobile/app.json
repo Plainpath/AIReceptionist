@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Tradie Quotes",
+    "slug": "tradie-quotes",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "tradiequotes",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "au.com.plainpath.tradiequotes"
+    },
+    "android": {
+      "package": "au.com.plainpath.tradiequotes",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Hale Electrical uses the microphone to capture spoken quote line items.",
+          "speechRecognitionPermission": "Hale Electrical uses speech recognition to turn what you say into quote line items."
+        }
+      ]
+    ]
+  }
+}
