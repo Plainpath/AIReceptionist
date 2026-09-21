@@ -18,8 +18,11 @@ clientsRouter.get("/", async (req: AuthedRequest, res) => {
 const createSchema = z.object({
   name: z.string().min(1),
   address: z.string().optional(),
+  email: z.string().email().optional(),
   origin: z.string().optional(),
 });
+
+const updateSchema = createSchema.partial();
 
 clientsRouter.post("/", async (req: AuthedRequest, res) => {
   const parsed = createSchema.safeParse(req.body);
@@ -28,6 +31,17 @@ clientsRouter.post("/", async (req: AuthedRequest, res) => {
     data: { ...parsed.data, businessId: req.auth!.businessId },
   });
   res.status(201).json(client);
+});
+
+clientsRouter.patch("/:id", async (req: AuthedRequest, res) => {
+  const parsed = updateSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const client = await prisma.client.updateMany({
+    where: { id: req.params.id, businessId: req.auth!.businessId },
+    data: parsed.data,
+  });
+  if (!client.count) return res.status(404).json({ error: "Not found" });
+  res.json(await prisma.client.findUnique({ where: { id: req.params.id } }));
 });
 
 clientsRouter.get("/:id", async (req: AuthedRequest, res) => {

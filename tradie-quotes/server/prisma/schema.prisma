@@ -23,16 +23,20 @@ model Business {
   showLeadSources Boolean @default(true)
   nextQuoteSeq   Int      @default(220)
   nextInvoiceSeq Int      @default(143)
+  employeeSeats  Int      @default(3)
   createdAt      DateTime @default(now())
 
-  users      User[]
-  clients    Client[]
-  leads      Lead[]
-  priceBook  PriceBookItem[]
-  quotes     Quote[]
-  invoices   Invoice[]
-  activity   ActivityEvent[]
-  services   ConnectedService[]
+  users       User[]
+  clients     Client[]
+  leads       Lead[]
+  priceBook   PriceBookItem[]
+  quotes      Quote[]
+  invoices    Invoice[]
+  activity    ActivityEvent[]
+  services    ConnectedService[]
+  safetyDocs  SafetyDocument[]
+  jobs        Job[]
+  timesheets  TimesheetEntry[]
 }
 
 model User {
@@ -42,7 +46,23 @@ model User {
   email        String   @unique
   passwordHash String
   name         String
+  role         String   @default("Owner")
   createdAt    DateTime @default(now())
+
+  timesheets TimesheetEntry[]
+}
+
+model TimesheetEntry {
+  id        String    @id @default(cuid())
+  businessId String
+  business  Business  @relation(fields: [businessId], references: [id])
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  jobId     String?
+  job       Job?      @relation(fields: [jobId], references: [id])
+  clockIn   DateTime  @default(now())
+  clockOut  DateTime?
+  note      String?
 }
 
 model Client {
@@ -51,6 +71,7 @@ model Client {
   business   Business @relation(fields: [businessId], references: [id])
   name       String
   address    String?
+  email      String?
   origin     String   @default("Manual")
   createdAt  DateTime @default(now())
 
@@ -58,6 +79,7 @@ model Client {
   quotes   Quote[]
   invoices Invoice[]
   activity ActivityEvent[]
+  jobs     Job[]
 }
 
 model Lead {
@@ -103,6 +125,7 @@ model Quote {
   lines    QuoteLine[]
   invoice  Invoice?
   activity ActivityEvent[]
+  jobs     Job[]
 }
 
 model QuoteLine {
@@ -171,6 +194,57 @@ model ActivityEvent {
   invoiceId  String?
   invoice    Invoice? @relation(fields: [invoiceId], references: [id])
   amount     Float?
+}
+
+model Job {
+  id             String    @id @default(cuid())
+  businessId     String
+  business       Business  @relation(fields: [businessId], references: [id])
+  clientId       String
+  client         Client    @relation(fields: [clientId], references: [id])
+  quoteId        String?
+  quote          Quote?    @relation(fields: [quoteId], references: [id])
+  title          String
+  assignedTo     String?
+  notes          String?
+  status         String    @default("Scheduled")
+  scheduledStart DateTime
+  scheduledEnd   DateTime
+  createdAt      DateTime  @default(now())
+  rescheduledAt  DateTime?
+  completedAt    DateTime?
+  followUpAt     DateTime?
+  followUpSentAt DateTime?
+
+  photos     JobPhoto[]
+  timesheets TimesheetEntry[]
+}
+
+model JobPhoto {
+  id         String   @id @default(cuid())
+  jobId      String
+  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  businessId String
+  filename   String
+  storedName String
+  mimeType   String
+  sizeBytes  Int
+  latitude   Float?
+  longitude  Float?
+  takenAt    DateTime @default(now())
+}
+
+model SafetyDocument {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+  title      String
+  category   String   @default("Other")
+  filename   String
+  storedName String
+  mimeType   String
+  sizeBytes  Int
+  uploadedAt DateTime @default(now())
 }
 
 model ConnectedService {

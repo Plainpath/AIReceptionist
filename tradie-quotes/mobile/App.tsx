@@ -8,7 +8,7 @@ import { useFonts, Barlow_400Regular, Barlow_500Medium, Barlow_700Bold } from "@
 import { BarlowCondensed_400Regular, BarlowCondensed_600SemiBold } from "@expo-google-fonts/barlow-condensed";
 
 import { AuthProvider, useAuth } from "./src/state/auth";
-import { ThemeProvider } from "./src/theme/ThemeProvider";
+import { ThemeProvider, useThemeMode } from "./src/theme/ThemeProvider";
 import { useBusiness } from "./src/api/hooks";
 import { LoginScreen } from "./src/screens/LoginScreen";
 import { RootNavigator } from "./src/navigation/RootNavigator";
@@ -23,11 +23,17 @@ function Splash() {
   );
 }
 
+function ThemedStatusBar() {
+  const { mode } = useThemeMode();
+  return <StatusBar style={mode === "dark" ? "light" : "dark"} />;
+}
+
 function AuthedApp() {
   const business = useBusiness();
   if (business.isLoading || !business.data) return <Splash />;
   return (
     <ThemeProvider accent={business.data.accentColor}>
+      <ThemedStatusBar />
       <RootNavigator />
     </ThemeProvider>
   );
@@ -39,6 +45,7 @@ function AppShell() {
   if (!signedIn) {
     return (
       <ThemeProvider accent="#5980a6">
+        <ThemedStatusBar />
         <LoginScreen />
       </ThemeProvider>
     );
@@ -66,7 +73,6 @@ export default function App() {
           </AuthProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
-      <StatusBar style="dark" />
     </GestureHandlerRootView>
   );
 }

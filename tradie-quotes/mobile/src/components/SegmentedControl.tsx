@@ -13,24 +13,37 @@ export function SegmentedControl<T extends string>({
 }) {
   const theme = useTheme();
   return (
-    <View style={{ flexDirection: "row", borderWidth: 1, borderColor: theme.colors.divider }}>
-      {options.map((opt, i) => {
+    <View
+      style={[
+        {
+          flexDirection: "row",
+          backgroundColor: theme.colors.neutral[200],
+          borderRadius: theme.radius.full,
+          padding: 3,
+          gap: 3,
+        },
+        theme.elevation(1),
+      ]}
+    >
+      {options.map((opt) => {
         const on = opt.value === value;
         return (
           <Pressable
             key={opt.value}
             onPress={() => onChange(opt.value)}
-            style={{
-              flex: 1,
-              alignItems: "center",
-              justifyContent: "center",
-              paddingVertical: 8,
-              borderLeftWidth: i === 0 ? 0 : 1,
-              borderLeftColor: theme.colors.divider,
-              backgroundColor: on ? theme.colors.accent.accent : "transparent",
-            }}
+            style={[
+              {
+                flex: 1,
+                alignItems: "center",
+                justifyContent: "center",
+                paddingVertical: 8,
+                borderRadius: theme.radius.full,
+                backgroundColor: on ? theme.colors.surface : "transparent",
+              },
+              on ? theme.elevation(1) : null,
+            ]}
           >
-            <Text style={{ fontFamily: theme.fonts.body, fontSize: 12.5, color: on ? "#fff" : theme.colors.text }}>
+            <Text style={{ fontFamily: theme.fonts.body, fontSize: 12.5, color: on ? theme.colors.accent[800] : theme.colors.neutral[700] }}>
               {opt.label}
             </Text>
           </Pressable>

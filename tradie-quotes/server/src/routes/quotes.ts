@@ -123,6 +123,20 @@ quotesRouter.post("/:id/lines/bulk", async (req: AuthedRequest, res) => {
   res.status(201).json(created);
 });
 
+const updateLineSchema = z.object({
+  label: z.string().min(1).optional(),
+  qty: z.number().positive().optional(),
+  unit: z.string().min(1).optional(),
+  rate: z.number().nonnegative().optional(),
+});
+
+quotesRouter.patch("/:id/lines/:lineId", async (req: AuthedRequest, res) => {
+  const parsed = updateLineSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const line = await prisma.quoteLine.update({ where: { id: req.params.lineId }, data: parsed.data });
+  res.json(line);
+});
+
 quotesRouter.delete("/:id/lines/:lineId", async (req: AuthedRequest, res) => {
   await prisma.quoteLine.delete({ where: { id: req.params.lineId } });
   res.status(204).end();

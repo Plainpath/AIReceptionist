@@ -3,6 +3,7 @@ import { ActivityIndicator, FlatList, Pressable, Text, View } from "react-native
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../theme/ThemeProvider";
 import { useClients } from "../api/hooks";
+import { BlueprintBox } from "../components/Blueprint";
 import type { TabScreenProps } from "../navigation/types";
 
 export function ClientListScreen({ navigation }: TabScreenProps<"Clients">) {
@@ -20,16 +21,15 @@ export function ClientListScreen({ navigation }: TabScreenProps<"Clients">) {
         <FlatList
           data={clients.data || []}
           keyExtractor={(c) => c.id}
-          contentContainerStyle={{ padding: 16 }}
+          contentContainerStyle={{ padding: 16, gap: 10 }}
           renderItem={({ item }) => (
-            <Pressable
-              onPress={() => navigation.navigate("ClientDetail", { clientId: item.id })}
-              style={{ paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: theme.colors.divider }}
-            >
-              <Text style={{ fontFamily: theme.fonts.heading, fontSize: 16, color: theme.colors.text }}>{item.name}</Text>
-              <Text style={{ fontFamily: theme.fonts.body, fontSize: 12, color: theme.colors.neutral[600], marginTop: 2 }}>
-                {item.address}
-              </Text>
+            <Pressable onPress={() => navigation.navigate("ClientDetail", { clientId: item.id })}>
+              <BlueprintBox style={{ padding: 13 }}>
+                <Text style={{ fontFamily: theme.fonts.heading, fontSize: 16, color: theme.colors.text }}>{item.name}</Text>
+                <Text style={{ fontFamily: theme.fonts.body, fontSize: 12, color: theme.colors.neutral[600], marginTop: 2 }}>
+                  {item.address}
+                </Text>
+              </BlueprintBox>
             </Pressable>
           )}
         />

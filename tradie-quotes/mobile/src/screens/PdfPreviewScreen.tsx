@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { ActivityIndicator, Linking, ScrollView, Share, Text, View } from "react-native";
+import { ActivityIndicator, Linking, ScrollView, Share, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 import { useTheme } from "../theme/ThemeProvider";
-import { useBusiness, useInvoice, useQuote, useSendInvoice, useSendQuote } from "../api/hooks";
+import { useBusiness, useInvoice, useQuote, useRecordPayment, useSendInvoice, useSendQuote } from "../api/hooks";
 import { BlueprintBox } from "../components/Blueprint";
 import { Tag } from "../components/Tag";
 import { Button } from "../components/Button";
@@ -24,9 +24,13 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
   const invoice = useInvoice(invoiceId || null);
   const sendQuote = useSendQuote();
   const sendInvoice = useSendInvoice();
+  const recordPayment = useRecordPayment(invoiceId || "");
   const { toast, flash } = useToast();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [payOpen, setPayOpen] = useState(false);
+  const [customAmount, setCustomAmount] = useState("");
   const [sending, setSending] = useState(false);
+  const [resending, setResending] = useState(false);
 
   const doc = isInvoice ? invoice.data : quote.data;
   const loading = business.isLoading || (isInvoice ? invoice.isLoading : quote.isLoading) || !doc || !business.data;
@@ -65,6 +69,34 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
   };
 
   const hostedLink = (token: string) => `${API_URL}/public/${isInvoice ? "invoices" : "quotes"}/${token}`;
+
+  const outstanding = isInvoice && doc!.status !== "Paid";
+
+  const onResend = async () => {
+    setResending(true);
+    try {
+      await sendInvoice.mutateAsync(invoiceId!);
+      flash(`${ref} resent to ${client.name}`);
+    } finally {
+      setResending(false);
+    }
+  };
+
+  const pay = async (amount: number) => {
+    const balance = (doc as any).totals.balance;
+    await recordPayment.mutateAsync({ amount, method: "Bank transfer" });
+    flash(amount >= balance - 0.01 ? "Marked paid in full · receipt sent" : "Part payment recorded");
+    setCustomAmount("");
+    setPayOpen(false);
+  };
+
+  const payCustom = () => {
+    const balance = (doc as any).totals.balance;
+    const amount = Math.round(parseFloat(customAmount) * 100) / 100;
+    if (!amount || amount <= 0) return flash("Enter an amount first");
+    if (amount > balance) return flash(`Can't exceed ${aud(balance, true)} owing`);
+    pay(amount);
+  };
 
   const finishSend = (msg: string) => {
     setSheetOpen(false);
@@ -177,13 +209,15 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
 
           <View style={{ marginTop: 18 }}>
             <View style={{ flexDirection: "row", paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: theme.colors.divider }}>
+              <Text style={{ width: 18, fontFamily: theme.fonts.body, fontSize: 8.5, color: theme.colors.neutral[600] }}>#</Text>
               <Text style={{ flex: 1, fontFamily: theme.fonts.body, fontSize: 8.5, color: theme.colors.neutral[600] }}>DESCRIPTION</Text>
               <Text style={{ width: 40, fontFamily: theme.fonts.body, fontSize: 8.5, color: theme.colors.neutral[600], textAlign: "right" }}>QTY</Text>
               <Text style={{ width: 55, fontFamily: theme.fonts.body, fontSize: 8.5, color: theme.colors.neutral[600], textAlign: "right" }}>RATE</Text>
               <Text style={{ width: 60, fontFamily: theme.fonts.body, fontSize: 8.5, color: theme.colors.neutral[600], textAlign: "right" }}>AMOUNT</Text>
             </View>
-            {lines.map((l) => (
+            {lines.map((l, i) => (
               <View key={l.id} style={{ flexDirection: "row", paddingVertical: 6 }}>
+                <Text style={{ width: 18, fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.neutral[600] }}>{i + 1}</Text>
                 <Text style={{ flex: 1, fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.text }}>{l.label}</Text>
                 <Text style={{ width: 40, fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.text, textAlign: "right" }}>
                   {l.qty} {l.unit}
@@ -252,7 +286,19 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
         {!isInvoice && (
           <Button label="Edit" variant="secondary" minHeight={44} onPress={() => navigation.navigate("QuoteBuilder", { quoteId: quoteId })} />
         )}
-        <Button label={isInvoice ? "Send invoice" : "Send quote"} variant="primary" flex minHeight={44} onPress={() => setSheetOpen(true)} />
+        {outstanding && (
+          <Button label="Record payment" variant="secondary" minHeight={44} onPress={() => setPayOpen(true)} />
+        )}
+        {outstanding && (
+          <Button label="Resend invoice" variant="secondary" flex minHeight={44} disabled={resending} onPress={onResend} />
+        )}
+        <Button
+          label={isInvoice ? "Send invoice" : "Send quote"}
+          variant="primary"
+          flex={!outstanding}
+          minHeight={44}
+          onPress={() => setSheetOpen(true)}
+        />
       </View>
 
       <Sheet visible={sheetOpen} onClose={() => setSheetOpen(false)}>
@@ -286,6 +332,72 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
         </View>
         <Button label="Cancel" variant="ghost" minHeight={40} style={{ marginTop: 8, borderWidth: 0 }} onPress={() => setSheetOpen(false)} />
       </Sheet>
+
+      {outstanding && (
+        <Sheet visible={payOpen} onClose={() => setPayOpen(false)}>
+          <Text style={{ fontFamily: theme.fonts.heading, fontSize: 22, color: theme.colors.text }}>Record payment</Text>
+          <Text style={{ fontFamily: theme.fonts.body, fontSize: 12.5, color: theme.colors.neutral[700], marginTop: 4 }}>
+            {ref} · {aud(Math.max(0, totals.balance), true)} outstanding
+          </Text>
+          <View style={{ gap: 9, marginTop: 16 }}>
+            <Button variant="secondary" minHeight={48} onPress={() => pay(totals.balance)}>
+              <View style={{ flexDirection: "row", flex: 1, justifyContent: "space-between", width: "100%" }}>
+                <Text style={{ fontFamily: theme.fonts.body, fontSize: 14, color: theme.colors.text }}>Paid in full</Text>
+                <Text style={{ fontFamily: theme.fonts.heading, fontSize: 15, color: theme.colors.text }}>
+                  {aud(totals.balance, true)}
+                </Text>
+              </View>
+            </Button>
+            <Button variant="secondary" minHeight={48} onPress={() => pay(totals.deposit)}>
+              <View style={{ flexDirection: "row", flex: 1, justifyContent: "space-between", width: "100%" }}>
+                <Text style={{ fontFamily: theme.fonts.body, fontSize: 14, color: theme.colors.text }}>Deposit only</Text>
+                <Text style={{ fontFamily: theme.fonts.heading, fontSize: 15, color: theme.colors.text }}>
+                  {aud(totals.deposit, true)}
+                </Text>
+              </View>
+            </Button>
+          </View>
+
+          <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: theme.colors.neutral[600], marginTop: 18 }}>
+            Or enter a part payment
+          </Text>
+          <View style={{ flexDirection: "row", gap: 8, marginTop: 8, alignItems: "center" }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                flex: 1,
+                minHeight: 44,
+                borderWidth: 1,
+                borderColor: theme.colors.divider,
+                backgroundColor: theme.colors.surface,
+                paddingHorizontal: 12,
+              }}
+            >
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 14, color: theme.colors.neutral[600] }}>$</Text>
+              <TextInput
+                value={customAmount}
+                onChangeText={setCustomAmount}
+                placeholder={(Math.round((totals.balance / 2) * 100) / 100).toFixed(2)}
+                placeholderTextColor={theme.colors.neutral[500]}
+                keyboardType="decimal-pad"
+                style={{ flex: 1, marginLeft: 4, fontFamily: theme.fonts.body, fontSize: 14, color: theme.colors.text, minHeight: 42 }}
+              />
+            </View>
+            <Button label="Record" variant="primary" minHeight={44} onPress={payCustom} />
+          </View>
+          <Button
+            label="Cancel"
+            variant="ghost"
+            minHeight={40}
+            style={{ marginTop: 8, borderWidth: 0 }}
+            onPress={() => {
+              setCustomAmount("");
+              setPayOpen(false);
+            }}
+          />
+        </Sheet>
+      )}
       <Toast message={toast} />
     </SafeAreaView>
   );

@@ -27,6 +27,7 @@ const updateSchema = z.object({
   depositPercent: z.number().min(0).max(100).optional(),
   defaultShape: z.enum(["Flat price", "Labour + materials", "Itemised"]).optional(),
   showLeadSources: z.boolean().optional(),
+  employeeSeats: z.number().int().min(0).max(100).optional(),
 });
 
 businessRouter.patch("/", async (req: AuthedRequest, res) => {

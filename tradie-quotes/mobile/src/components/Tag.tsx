@@ -38,6 +38,7 @@ export function Tag({
         backgroundColor: background,
         borderColor,
         borderWidth: borderColor ? 1 : 0,
+        borderRadius: theme.radius.full,
         paddingHorizontal: 10,
         paddingVertical: 3,
         alignSelf: "flex-start",

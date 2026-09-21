@@ -100,7 +100,8 @@ export function renderQuotePdf(
   // Line items table
   let y = 190;
   pdf.fillColor("#777").fontSize(8).font("Helvetica-Bold");
-  pdf.text("DESCRIPTION", 40, y);
+  pdf.text("#", 40, y, { width: 20 });
+  pdf.text("DESCRIPTION", 65, y);
   pdf.text("QTY", 340, y, { width: 50, align: "right" });
   pdf.text("RATE", 390, y, { width: 70, align: "right" });
   pdf.text("AMOUNT", 470, y, { width: 85, align: "right" });
@@ -109,14 +110,15 @@ export function renderQuotePdf(
   y += 8;
 
   pdf.font("Helvetica").fontSize(10).fillColor("#111");
-  for (const l of lines) {
+  lines.forEach((l, i) => {
     const amount = l.qty * l.rate;
-    pdf.text(l.label, 40, y, { width: 290 });
+    pdf.fillColor("#999").text(String(i + 1), 40, y, { width: 20 });
+    pdf.fillColor("#111").text(l.label, 65, y, { width: 265 });
     pdf.text(`${l.qty} ${l.unit}`, 340, y, { width: 50, align: "right" });
     pdf.text(money(l.rate), 390, y, { width: 70, align: "right" });
     pdf.text(money(amount), 470, y, { width: 85, align: "right" });
     y += 20;
-  }
+  });
 
   y += 10;
   pdf.moveTo(340, y).lineTo(555, y).strokeColor("#ddd").stroke();

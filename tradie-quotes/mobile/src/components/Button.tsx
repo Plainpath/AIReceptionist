@@ -26,11 +26,10 @@ export function Button({
   children?: React.ReactNode;
 }) {
   const theme = useTheme();
-  const bg =
-    variant === "primary" ? theme.colors.accent.accent : variant === "ghost" ? "transparent" : "transparent";
-  const borderColor =
-    variant === "primary" ? theme.colors.accent.accent : variant === "ghost" ? "transparent" : theme.colors.divider;
+  const bg = variant === "primary" ? theme.colors.accent.accent : variant === "ghost" ? "transparent" : theme.colors.surface;
+  const borderColor = variant === "secondary" ? theme.colors.divider : "transparent";
   const color = variant === "primary" ? "#fff" : variant === "ghost" ? theme.colors.accent.accent : theme.colors.text;
+  const restingElevation = variant === "primary" ? 2 : variant === "secondary" ? 1 : 0;
 
   return (
     <Pressable
@@ -41,10 +40,16 @@ export function Button({
         {
           backgroundColor: bg,
           borderColor,
+          borderWidth: variant === "secondary" ? 1 : 0,
+          borderRadius: variant === "ghost" ? theme.radius.sm : theme.radius.full,
           minHeight,
-          opacity: disabled ? 0.45 : pressed ? 0.75 : 1,
+          opacity: disabled ? 0.45 : 1,
           flex: flex ? 1 : undefined,
+          transform: [{ scale: pressed && !disabled ? 0.97 : 1 }],
         },
+        variant !== "ghost"
+          ? theme.elevation((pressed && !disabled ? Math.max(0, restingElevation - 1) : restingElevation) as 0 | 1 | 2)
+          : null,
         style,
       ]}
     >
@@ -60,7 +65,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    borderWidth: 1,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
   },
 });

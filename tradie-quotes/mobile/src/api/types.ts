@@ -12,6 +12,7 @@ export type Business = {
   depositPercent: number;
   defaultShape: QuoteShape;
   showLeadSources: boolean;
+  employeeSeats: number;
   services: ConnectedService[];
 };
 
@@ -85,6 +86,79 @@ export type Invoice = {
   paid: number;
   totals: Totals;
   quote?: { ref: string } | null;
+};
+
+export type Role = "Owner" | "Employee";
+
+export type Me = { id: string; email: string; name: string; role: Role; businessId: string };
+
+export type Employee = { id: string; email: string; name: string; role: Role; createdAt: string };
+
+export type EmployeesResponse = { seatsUsed: number; seatLimit: number; users: Employee[] };
+
+export type TimesheetEntry = {
+  id: string;
+  userId: string;
+  user: { id: string; name: string };
+  jobId: string | null;
+  job: { id: string; title: string } | null;
+  clockIn: string;
+  clockOut: string | null;
+  note: string | null;
+};
+
+export type PaidInvoiceRow = {
+  id: string;
+  ref: string;
+  client: Client;
+  paidAt: string;
+  exGst: number;
+  gst: number;
+  total: number;
+};
+
+export type AccountingSummary = {
+  from: string | null;
+  to: string | null;
+  count: number;
+  totals: { exGst: number; gst: number; total: number };
+  invoices: PaidInvoiceRow[];
+};
+
+export type Job = {
+  id: string;
+  clientId: string;
+  quoteId: string | null;
+  title: string;
+  assignedTo: string | null;
+  notes: string | null;
+  status: "Scheduled" | "In progress" | "Completed" | "Cancelled";
+  scheduledStart: string;
+  scheduledEnd: string;
+  rescheduledAt: string | null;
+  client: Client;
+  quote?: { ref: string } | null;
+};
+
+export type JobPhoto = {
+  id: string;
+  jobId: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  latitude: number | null;
+  longitude: number | null;
+  takenAt: string;
+};
+
+export type SafetyDocument = {
+  id: string;
+  title: string;
+  category: "JSA" | "SWMS" | "Other";
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  uploadedAt: string;
 };
 
 export type ParsedVoiceLine = {

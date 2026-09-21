@@ -7,12 +7,16 @@ export type RootStackParamList = {
   QuoteBuilder: { quoteId?: string; leadId?: string; clientId?: string };
   PdfPreview: { quoteId?: string; invoiceId?: string };
   ClientDetail: { clientId: string };
+  SafetyLibrary: undefined;
+  AccountingSummary: undefined;
 };
 
 export type TabsParamList = {
-  Inbox: undefined;
-  Money: undefined;
+  Dashboard: undefined;
+  Calendar: undefined;
+  Money: { tab?: "quotes" | "invoices" } | undefined;
   Clients: undefined;
+  Timesheet: undefined;
   Business: undefined;
 };
 

@@ -20,14 +20,27 @@ export function Sheet({
       >
         <Pressable
           onPress={(e) => e.stopPropagation()}
-          style={{
-            backgroundColor: theme.colors.bg,
-            borderTopWidth: 1,
-            borderColor: theme.colors.divider,
-            padding: 16,
-            paddingBottom: 34,
-          }}
+          style={[
+            {
+              backgroundColor: theme.colors.surface,
+              borderTopLeftRadius: theme.radius.xl,
+              borderTopRightRadius: theme.radius.xl,
+              padding: 16,
+              paddingBottom: 34,
+            },
+            theme.elevation(4),
+          ]}
         >
+          <View
+            style={{
+              alignSelf: "center",
+              width: 36,
+              height: 4,
+              borderRadius: theme.radius.full,
+              backgroundColor: theme.colors.neutral[300],
+              marginBottom: 12,
+            }}
+          />
           {children}
         </Pressable>
       </Pressable>

@@ -1,5 +1,5 @@
 import React from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Linking, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../theme/ThemeProvider";
 import { useClient } from "../api/hooks";
@@ -25,6 +25,11 @@ export function ClientDetailScreen({ route, navigation }: RootScreenProps<"Clien
   }
 
   const c = client.data;
+
+  const onDirections = () => {
+    if (!c.address) return flash("No address on file for this client");
+    Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(c.address)}`);
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.bg }}>
@@ -63,6 +68,9 @@ export function ClientDetailScreen({ route, navigation }: RootScreenProps<"Clien
             <Button label="New quote" variant="primary" flex minHeight={44} onPress={() => navigation.navigate("QuoteBuilder", { clientId: c.id })} />
             <Button label="Call" variant="secondary" minHeight={44} onPress={() => flash(`Calling ${c.name} — the secretary will log it`)} />
             <Button label="Message" variant="secondary" minHeight={44} onPress={() => flash("Message thread opened")} />
+          </View>
+          <View style={{ marginTop: 8 }}>
+            <Button label="Directions" variant="secondary" minHeight={44} onPress={onDirections} />
           </View>
         </View>
 
