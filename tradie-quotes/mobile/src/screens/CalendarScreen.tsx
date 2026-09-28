@@ -241,7 +241,7 @@ export function CalendarScreen({}: RootScreenProps<"Calendar">) {
           }}
         />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginTop: 10 }}>
-          {["Switchboard upgrade", "Safety switch install", "Follow-up visit", "Site inspection"].map((t) => (
+          {["Hot water system install", "Blocked drain clear", "Follow-up visit", "Site inspection"].map((t) => (
             <Button key={t} label={t} variant={title === t ? "primary" : "secondary"} minHeight={34} onPress={() => setTitle(t)} />
           ))}
         </ScrollView>

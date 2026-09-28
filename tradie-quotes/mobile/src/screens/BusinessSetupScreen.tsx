@@ -120,7 +120,7 @@ export function BusinessSetupScreen({ navigation }: RootScreenProps<"Business">)
           <Field label="Trading name" value={val("name", b.name)} onChangeText={(v) => setLocal((s) => ({ ...s, name: v }))} onBlur={() => commit("name")} />
           <Field label="ABN" value={val("abn", b.abn)} onChangeText={(v) => setLocal((s) => ({ ...s, abn: v }))} onBlur={() => commit("abn")} />
           <Field
-            label="Electrical licence"
+            label="Plumbing licence"
             value={val("licence", b.licence || "")}
             onChangeText={(v) => setLocal((s) => ({ ...s, licence: v }))}
             onBlur={() => commit("licence")}

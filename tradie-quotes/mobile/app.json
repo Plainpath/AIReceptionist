@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Tradie Quotes",
+    "name": "Chalon Plumbing",
     "slug": "tradie-quotes",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -28,21 +28,21 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "Hale Electrical uses the microphone to capture spoken quote line items.",
-          "speechRecognitionPermission": "Hale Electrical uses speech recognition to turn what you say into quote line items."
+          "microphonePermission": "Chalon Plumbing uses the microphone to capture spoken quote line items.",
+          "speechRecognitionPermission": "Chalon Plumbing uses speech recognition to turn what you say into quote line items."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Hale Electrical uses your photo library to attach job photos.",
-          "cameraPermission": "Hale Electrical uses the camera to take job photos on-site."
+          "photosPermission": "Chalon Plumbing uses your photo library to attach job photos.",
+          "cameraPermission": "Chalon Plumbing uses the camera to take job photos on-site."
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Hale Electrical tags job photos with the site location."
+          "locationWhenInUsePermission": "Chalon Plumbing tags job photos with the site location."
         }
       ]
     ]

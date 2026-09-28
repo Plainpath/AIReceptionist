@@ -275,7 +275,7 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
                 Terms
               </Text>
               <Text style={{ fontFamily: theme.fonts.body, fontSize: 10.5, lineHeight: 16, color: theme.colors.neutral[800], marginTop: 3 }}>
-                Quote valid 30 days. Variations quoted separately. All work to AS/NZS 3000.
+                Quote valid 30 days. Variations quoted separately. All work to AS/NZS 3500.
               </Text>
             </View>
           </View>

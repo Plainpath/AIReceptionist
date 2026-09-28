@@ -8,7 +8,7 @@ import { Button } from "../components/Button";
 export function LoginScreen() {
   const theme = useTheme();
   const { login } = useAuth();
-  const [email, setEmail] = useState("owner@haleelectrical.com.au");
+  const [email, setEmail] = useState("owner@chalonplumbing.com.au");
   const [password, setPassword] = useState("password123");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -82,7 +82,7 @@ export function LoginScreen() {
         </Button>
 
         <Text style={{ fontFamily: theme.fonts.body, fontSize: 11.5, color: theme.colors.neutral[600], textAlign: "center", marginTop: 4 }}>
-          Demo login · owner@haleelectrical.com.au / password123
+          Demo login · owner@chalonplumbing.com.au / password123
         </Text>
       </KeyboardAvoidingView>
     </SafeAreaView>

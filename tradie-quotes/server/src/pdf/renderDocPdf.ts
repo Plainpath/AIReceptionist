@@ -158,7 +158,7 @@ export function renderQuotePdf(
   pdf
     .fillColor("#333")
     .fontSize(9)
-    .text("Quote valid 30 days. Variations quoted separately. All work to AS/NZS 3000.", 310, y, { width: 205 });
+    .text("Quote valid 30 days. Variations quoted separately. All work to AS/NZS 3500.", 310, y, { width: 205 });
 
   pdf.end();
 }

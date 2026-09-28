@@ -25,14 +25,14 @@ async function main() {
 
   const business = await prisma.business.create({
     data: {
-      name: "Hale Electrical",
-      accentColor: "#5980a6",
+      name: "Chalon Plumbing",
+      accentColor: "#4A76B8",
       abn: "54 221 908 116",
-      licence: "148 220 (VIC)",
+      licence: "PL 48213 (VIC)",
       gstRegistered: true,
       bsb: "063-118",
       accountNumber: "1084 2210",
-      address: "14 Dunstan Rd, Coburg VIC 3058",
+      address: "6 Foundry Lane, Brunswick VIC 3056",
       phone: "0412 884 210",
       depositPercent: 20,
       defaultShape: "Labour + materials",
@@ -45,9 +45,10 @@ async function main() {
   await prisma.user.create({
     data: {
       businessId: business.id,
-      email: "owner@haleelectrical.com.au",
+      email: "owner@chalonplumbing.com.au",
       passwordHash: await bcrypt.hash("password123", 10),
-      name: "Dean Hale",
+      name: "Marco Chalon",
+      role: "Owner",
     },
   });
 
@@ -62,13 +63,16 @@ async function main() {
 
   await prisma.priceBookItem.createMany({
     data: [
-      { businessId: business.id, label: "Labour — licensed electrician", rate: 98, unit: "hr", sortOrder: 0 },
-      { businessId: business.id, label: "Apprentice labour", rate: 62, unit: "hr", sortOrder: 1 },
-      { businessId: business.id, label: "LED downlight, dimmable", rate: 74, unit: "ea", sortOrder: 2 },
-      { businessId: business.id, label: "Safety switch (RCD) 2-pole", rate: 86, unit: "ea", sortOrder: 3 },
-      { businessId: business.id, label: "Double GPO, install + make good", rate: 168, unit: "ea", sortOrder: 4 },
-      { businessId: business.id, label: "Switchboard upgrade, 12-way", rate: 1240, unit: "ea", sortOrder: 5 },
-      { businessId: business.id, label: "Call-out fee (metro)", rate: 88, unit: "ea", sortOrder: 6 },
+      { businessId: business.id, label: "Labour — licensed plumber", rate: 110, unit: "hr", sortOrder: 0 },
+      { businessId: business.id, label: "Apprentice labour", rate: 65, unit: "hr", sortOrder: 1 },
+      { businessId: business.id, label: "Call-out fee (metro)", rate: 90, unit: "ea", sortOrder: 2 },
+      { businessId: business.id, label: "Blocked drain clearing (electric eel)", rate: 180, unit: "ea", sortOrder: 3 },
+      { businessId: business.id, label: "Hot water system install (continuous flow gas)", rate: 2200, unit: "ea", sortOrder: 4 },
+      { businessId: business.id, label: "Tap/mixer replacement", rate: 165, unit: "ea", sortOrder: 5 },
+      { businessId: business.id, label: "Toilet suite install (supply + fit)", rate: 480, unit: "ea", sortOrder: 6 },
+      { businessId: business.id, label: "Gas compliance certificate", rate: 150, unit: "ea", sortOrder: 7 },
+      { businessId: business.id, label: "CCTV drain camera inspection", rate: 220, unit: "ea", sortOrder: 8 },
+      { businessId: business.id, label: "Pipe relining (per metre)", rate: 95, unit: "m", sortOrder: 9 },
     ],
   });
 
@@ -93,7 +97,7 @@ async function main() {
       businessId: business.id,
       clientId: marcus.id,
       source: "Web chat",
-      snippet: "“Six downlights and a dimmer in the living room — can you do it this week?”",
+      snippet: "“Hot water system's died — no hot water, can you get here this week?”",
       receivedAt: ago(0, 0.2),
     },
   });
@@ -102,7 +106,7 @@ async function main() {
       businessId: business.id,
       clientId: priya.id,
       source: "AI secretary · call",
-      snippet: "Missed call, transcribed: switchboard tripping when the oven runs. Wants a quote before Friday. 0:48",
+      snippet: "Missed call, transcribed: kitchen tap won't stop dripping. Wants a quote before Friday. 0:48",
       receivedAt: ago(0, 1),
     },
   });
@@ -111,7 +115,7 @@ async function main() {
       businessId: business.id,
       clientId: bayside.id,
       source: "Web chat",
-      snippet: "“Three new power points behind the counter, plus check the RCD.”",
+      snippet: "“Three basins blocked out back, plus check the grease trap.”",
       receivedAt: ago(1),
     },
   });
@@ -129,9 +133,9 @@ async function main() {
       createdAt: ago(3),
       lines: {
         create: [
-          { label: "Double GPO, install + make good", qty: 6, unit: "ea", rate: 168, sortOrder: 0 },
-          { label: "Safety switch (RCD) 2-pole", qty: 2, unit: "ea", rate: 86, sortOrder: 1 },
-          { label: "Labour — licensed electrician", qty: 24, unit: "hr", rate: 98, sortOrder: 2 },
+          { label: "Tap/mixer replacement", qty: 6, unit: "ea", rate: 165, sortOrder: 0 },
+          { label: "Blocked drain clearing (electric eel)", qty: 2, unit: "ea", rate: 180, sortOrder: 1 },
+          { label: "Labour — licensed plumber", qty: 24, unit: "hr", rate: 110, sortOrder: 2 },
         ],
       },
     },
@@ -146,7 +150,7 @@ async function main() {
       shape: "Flat price",
       status: "Declined",
       createdAt: ago(9),
-      lines: { create: [{ label: "Oven circuit, supply and install", qty: 1, unit: "ea", rate: 891, sortOrder: 0 }] },
+      lines: { create: [{ label: "Mainline pipe repair, supply and install", qty: 1, unit: "ea", rate: 891, sortOrder: 0 }] },
     },
   });
 
@@ -162,9 +166,9 @@ async function main() {
       createdAt: ago(16),
       lines: {
         create: [
-          { label: "Oven circuit, supply and install", qty: 1, unit: "ea", rate: 640, sortOrder: 0 },
-          { label: "Safety switch (RCD) 2-pole", qty: 1, unit: "ea", rate: 86, sortOrder: 1 },
-          { label: "Labour — licensed electrician", qty: 4, unit: "hr", rate: 98, sortOrder: 2 },
+          { label: "Under-sink leak repair", qty: 1, unit: "ea", rate: 640, sortOrder: 0 },
+          { label: "Isolation valve replacement", qty: 1, unit: "ea", rate: 86, sortOrder: 1 },
+          { label: "Labour — licensed plumber", qty: 4, unit: "hr", rate: 110, sortOrder: 2 },
         ],
       },
     },
@@ -182,9 +186,9 @@ async function main() {
       dueDate: ago(1),
       lines: {
         create: [
-          { label: "Oven circuit, supply and install", qty: 1, unit: "ea", rate: 640, sortOrder: 0 },
-          { label: "Safety switch (RCD) 2-pole", qty: 1, unit: "ea", rate: 86, sortOrder: 1 },
-          { label: "Labour — licensed electrician", qty: 4, unit: "hr", rate: 98, sortOrder: 2 },
+          { label: "Under-sink leak repair", qty: 1, unit: "ea", rate: 640, sortOrder: 0 },
+          { label: "Isolation valve replacement", qty: 1, unit: "ea", rate: 86, sortOrder: 1 },
+          { label: "Labour — licensed plumber", qty: 4, unit: "hr", rate: 110, sortOrder: 2 },
         ],
       },
     },
@@ -204,8 +208,8 @@ async function main() {
       dueDate: ago(3),
       lines: {
         create: [
-          { label: "Switchboard upgrade, 12-way", qty: 1, unit: "ea", rate: 1240, sortOrder: 0 },
-          { label: "Labour — licensed electrician", qty: 8, unit: "hr", rate: 98, sortOrder: 1 },
+          { label: "Hot water system replacement (storage, 250L)", qty: 1, unit: "ea", rate: 1240, sortOrder: 0 },
+          { label: "Labour — licensed plumber", qty: 8, unit: "hr", rate: 110, sortOrder: 1 },
         ],
       },
     },
@@ -223,7 +227,7 @@ async function main() {
       status: "Overdue",
       createdAt: ago(28),
       dueDate: ago(14),
-      lines: { create: [{ label: "Three-phase power upgrade", qty: 1, unit: "ea", rate: 1800, sortOrder: 0 }] },
+      lines: { create: [{ label: "Sewer line replacement (partial)", qty: 1, unit: "ea", rate: 1800, sortOrder: 0 }] },
     },
   });
 
@@ -233,14 +237,14 @@ async function main() {
         businessId: business.id,
         clientId: marcus.id,
         kind: "Web chat",
-        text: "“Six downlights and a dimmer in the living room — can you do it this week?” Bot captured address and preferred day.",
+        text: "“Hot water system's died — no hot water, can you get here this week?” Bot captured address and preferred day.",
         occurredAt: ago(0, 0.2),
       },
       {
         businessId: business.id,
         clientId: marcus.id,
         kind: "Quote sent",
-        text: "Quote for oven circuit and RCD replacement — accepted same day.",
+        text: "Quote for under-sink leak repair and isolation valve replacement — accepted same day.",
         occurredAt: ago(14),
         quoteId: q211.id,
         amount: 1120,
@@ -265,13 +269,13 @@ async function main() {
         businessId: business.id,
         clientId: marcus.id,
         kind: "Job",
-        text: "Kitchen rewire, two days on site. 6 photos attached.",
+        text: "Full bathroom repipe, two days on site. 6 photos attached.",
         occurredAt: ago(66),
       },
     ],
   });
 
-  console.log("Seeded Hale Electrical — login owner@haleelectrical.com.au / password123");
+  console.log("Seeded Chalon Plumbing — login owner@chalonplumbing.com.au / password123");
 }
 
 main()

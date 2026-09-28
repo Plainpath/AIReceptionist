@@ -130,7 +130,7 @@ export function VoiceCapture({ quoteId, onAccept, onError }: { quoteId: string; 
           <Text style={{ flex: 1, fontFamily: theme.fonts.body, fontSize: 12.5, lineHeight: 18, color: theme.colors.neutral[700] }}>
             Hold to speak a whole line item —{"\n"}
             <Text style={{ fontStyle: "italic", color: theme.colors.neutral[600] }}>
-              "two hours labour at ninety plus a switchboard"
+              "two hours labour at one ten plus a mixer tap"
             </Text>
           </Text>
         </View>
@@ -151,7 +151,7 @@ export function VoiceCapture({ quoteId, onAccept, onError }: { quoteId: string; 
       {mode === "typing" && (
         <View style={{ gap: 9 }}>
           <Text style={{ fontFamily: theme.fonts.body, fontSize: 11.5, color: theme.colors.neutral[600] }}>
-            Type the line item, e.g. "two hours labour at ninety plus a switchboard"
+            Type the line item, e.g. "two hours labour at one ten plus a mixer tap"
           </Text>
           <TextInput
             value={typed}
