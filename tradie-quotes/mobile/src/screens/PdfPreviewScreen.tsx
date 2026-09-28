@@ -15,6 +15,11 @@ import { shareDocPdf } from "../lib/pdf";
 import type { RootScreenProps } from "../navigation/types";
 import type { Line, Totals } from "../api/types";
 
+// The document preview simulates a printed page — always dark text on white
+// paper, regardless of the app's light/dark theme (unlike the rest of the
+// screen, which follows theme.colors as usual).
+const PAPER = { text: "#171717", label: "#777777", body: "#555555", strong: "#333333", divider: "#e5e5e5" };
+
 export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPreview">) {
   const theme = useTheme();
   const { quoteId, invoiceId } = route.params;
@@ -167,7 +172,7 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
           >
             <View>
               <Text style={{ fontFamily: theme.fonts.heading, fontWeight: "600", fontSize: 22, color: theme.colors.accent[800] }}>{b.name}</Text>
-              <Text style={{ fontFamily: theme.fonts.body, fontSize: 9.5, lineHeight: 15, color: theme.colors.neutral[700], marginTop: 6 }}>
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 9.5, lineHeight: 15, color: PAPER.body, marginTop: 6 }}>
                 {b.licence ? `Lic. ${b.licence} · ` : ""}ABN {b.abn}
                 {"\n"}
                 {b.address}
@@ -176,11 +181,11 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
               </Text>
             </View>
             <View style={{ alignItems: "flex-end" }}>
-              <Text style={{ fontFamily: theme.fonts.body, fontSize: 9, letterSpacing: 1.5, textTransform: "uppercase", color: theme.colors.neutral[600] }}>
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 9, letterSpacing: 1.5, textTransform: "uppercase", color: PAPER.label }}>
                 {isInvoice ? "Tax Invoice" : "Quotation"}
               </Text>
-              <Text style={{ fontFamily: theme.fonts.heading, fontSize: 17, color: theme.colors.text, marginTop: 2 }}>{ref}</Text>
-              <Text style={{ fontFamily: theme.fonts.body, fontSize: 9.5, color: theme.colors.neutral[700], marginTop: 4, textAlign: "right" }}>
+              <Text style={{ fontFamily: theme.fonts.heading, fontSize: 17, color: PAPER.text, marginTop: 2 }}>{ref}</Text>
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 9.5, color: PAPER.body, marginTop: 4, textAlign: "right" }}>
                 {new Date(doc!.createdAt).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}
                 {"\n"}
                 {dueOrValid}
@@ -190,40 +195,40 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
 
           <View style={{ flexDirection: "row", gap: 14, marginTop: 14 }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: theme.fonts.body, fontSize: 8.5, letterSpacing: 1.2, textTransform: "uppercase", color: theme.colors.neutral[600] }}>
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 8.5, letterSpacing: 1.2, textTransform: "uppercase", color: PAPER.label }}>
                 Prepared for
               </Text>
-              <Text style={{ fontFamily: theme.fonts.body, fontSize: 11.5, lineHeight: 17, color: theme.colors.text, marginTop: 3 }}>
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 11.5, lineHeight: 17, color: PAPER.text, marginTop: 3 }}>
                 {client.name}
                 {"\n"}
                 {client.address}
               </Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: theme.fonts.body, fontSize: 8.5, letterSpacing: 1.2, textTransform: "uppercase", color: theme.colors.neutral[600] }}>
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 8.5, letterSpacing: 1.2, textTransform: "uppercase", color: PAPER.label }}>
                 Scope
               </Text>
-              <Text style={{ fontFamily: theme.fonts.body, fontSize: 11.5, lineHeight: 17, color: theme.colors.text, marginTop: 3 }}>{scope}</Text>
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 11.5, lineHeight: 17, color: PAPER.text, marginTop: 3 }}>{scope}</Text>
             </View>
           </View>
 
           <View style={{ marginTop: 18 }}>
-            <View style={{ flexDirection: "row", paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: theme.colors.divider }}>
-              <Text style={{ width: 18, fontFamily: theme.fonts.body, fontSize: 8.5, color: theme.colors.neutral[600] }}>#</Text>
-              <Text style={{ flex: 1, fontFamily: theme.fonts.body, fontSize: 8.5, color: theme.colors.neutral[600] }}>DESCRIPTION</Text>
-              <Text style={{ width: 40, fontFamily: theme.fonts.body, fontSize: 8.5, color: theme.colors.neutral[600], textAlign: "right" }}>QTY</Text>
-              <Text style={{ width: 55, fontFamily: theme.fonts.body, fontSize: 8.5, color: theme.colors.neutral[600], textAlign: "right" }}>RATE</Text>
-              <Text style={{ width: 60, fontFamily: theme.fonts.body, fontSize: 8.5, color: theme.colors.neutral[600], textAlign: "right" }}>AMOUNT</Text>
+            <View style={{ flexDirection: "row", paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: PAPER.divider }}>
+              <Text style={{ width: 18, fontFamily: theme.fonts.body, fontSize: 8.5, color: PAPER.label }}>#</Text>
+              <Text style={{ flex: 1, fontFamily: theme.fonts.body, fontSize: 8.5, color: PAPER.label }}>DESCRIPTION</Text>
+              <Text style={{ width: 40, fontFamily: theme.fonts.body, fontSize: 8.5, color: PAPER.label, textAlign: "right" }}>QTY</Text>
+              <Text style={{ width: 55, fontFamily: theme.fonts.body, fontSize: 8.5, color: PAPER.label, textAlign: "right" }}>RATE</Text>
+              <Text style={{ width: 60, fontFamily: theme.fonts.body, fontSize: 8.5, color: PAPER.label, textAlign: "right" }}>AMOUNT</Text>
             </View>
             {lines.map((l, i) => (
               <View key={l.id} style={{ flexDirection: "row", paddingVertical: 6 }}>
-                <Text style={{ width: 18, fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.neutral[600] }}>{i + 1}</Text>
-                <Text style={{ flex: 1, fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.text }}>{l.label}</Text>
-                <Text style={{ width: 40, fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.text, textAlign: "right" }}>
+                <Text style={{ width: 18, fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.label }}>{i + 1}</Text>
+                <Text style={{ flex: 1, fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text }}>{l.label}</Text>
+                <Text style={{ width: 40, fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text, textAlign: "right" }}>
                   {l.qty} {l.unit}
                 </Text>
-                <Text style={{ width: 55, fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.text, textAlign: "right" }}>{aud(l.rate, true)}</Text>
-                <Text style={{ width: 60, fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.text, textAlign: "right" }}>
+                <Text style={{ width: 55, fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text, textAlign: "right" }}>{aud(l.rate, true)}</Text>
+                <Text style={{ width: 60, fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text, textAlign: "right" }}>
                   {aud(l.qty * l.rate, true)}
                 </Text>
               </View>
@@ -232,24 +237,24 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
 
           <View style={{ alignItems: "flex-end", marginTop: 12 }}>
             <View style={{ width: 210 }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: theme.colors.divider }}>
-                <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.neutral[700] }}>Subtotal (ex GST)</Text>
-                <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.text }}>{aud(totals.sub, true)}</Text>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: PAPER.divider }}>
+                <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.body }}>Subtotal (ex GST)</Text>
+                <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text }}>{aud(totals.sub, true)}</Text>
               </View>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: theme.colors.divider }}>
-                <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.neutral[700] }}>GST 10%</Text>
-                <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.text }}>{aud(totals.gst, true)}</Text>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: PAPER.divider }}>
+                <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.body }}>GST 10%</Text>
+                <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text }}>{aud(totals.gst, true)}</Text>
               </View>
               {!isInvoice && b.depositPercent > 0 && (
-                <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: theme.colors.divider }}>
-                  <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.neutral[700] }}>Deposit on acceptance ({b.depositPercent}%)</Text>
-                  <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.text }}>{aud(totals.deposit, true)}</Text>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: PAPER.divider }}>
+                  <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.body }}>Deposit on acceptance ({b.depositPercent}%)</Text>
+                  <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text }}>{aud(totals.deposit, true)}</Text>
                 </View>
               )}
               {paid > 0 && (
-                <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: theme.colors.divider }}>
-                  <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.neutral[700] }}>Payment received</Text>
-                  <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.text }}>− {aud(paid, true)}</Text>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: PAPER.divider }}>
+                  <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.body }}>Payment received</Text>
+                  <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text }}>− {aud(paid, true)}</Text>
                 </View>
               )}
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", padding: 8, marginTop: 6, backgroundColor: theme.colors.accent.accent }}>
@@ -259,22 +264,22 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
             </View>
           </View>
 
-          <View style={{ flexDirection: "row", gap: 14, marginTop: 20, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.colors.divider }}>
+          <View style={{ flexDirection: "row", gap: 14, marginTop: 20, paddingTop: 12, borderTopWidth: 1, borderTopColor: PAPER.divider }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: theme.fonts.body, fontSize: 8.5, letterSpacing: 1.2, textTransform: "uppercase", color: theme.colors.neutral[600] }}>
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 8.5, letterSpacing: 1.2, textTransform: "uppercase", color: PAPER.label }}>
                 Payment
               </Text>
-              <Text style={{ fontFamily: theme.fonts.body, fontSize: 10.5, lineHeight: 16, color: theme.colors.neutral[800], marginTop: 3 }}>
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 10.5, lineHeight: 16, color: PAPER.strong, marginTop: 3 }}>
                 {isInvoice
                   ? `${b.name} · BSB ${b.bsb || "—"} · Acct ${b.accountNumber || "—"}. Or pay now via the invoice link.`
                   : `Deposit of ${aud(totals.deposit, true)} on acceptance. Balance on completion by transfer or card.`}
               </Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: theme.fonts.body, fontSize: 8.5, letterSpacing: 1.2, textTransform: "uppercase", color: theme.colors.neutral[600] }}>
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 8.5, letterSpacing: 1.2, textTransform: "uppercase", color: PAPER.label }}>
                 Terms
               </Text>
-              <Text style={{ fontFamily: theme.fonts.body, fontSize: 10.5, lineHeight: 16, color: theme.colors.neutral[800], marginTop: 3 }}>
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 10.5, lineHeight: 16, color: PAPER.strong, marginTop: 3 }}>
                 Quote valid 30 days. Variations quoted separately. All work to AS/NZS 3500.
               </Text>
             </View>

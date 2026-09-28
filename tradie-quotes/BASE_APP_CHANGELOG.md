@@ -24,6 +24,15 @@ committed.
   removed `mobile/src/navigation/TabBarIcon.tsx` (dead code).
   Commit: (pending — see next `git log` on this branch)
 
+- **2026-09-30** — Fixed the quote/invoice preview ("paper" document mock)
+  rendering unreadable in dark mode: it used theme-driven text colors on a
+  hardcoded white page background, so dark-mode text (near-white) was
+  invisible on the white paper. Now uses a fixed light-paper palette for the
+  document content, independent of the app's theme — same as how the real
+  server-rendered PDF always looks the same regardless of app theme.
+  Files: `mobile/src/screens/PdfPreviewScreen.tsx`.
+  Commit: (pending — see next `git log` on this branch)
+
 - **2026-09-30** — Quote builder: line price is now editable (tap the rate to
   type a new one), and the price book is now a single "Price book" button
   that opens a multi-select sheet (works the same for Flat price, Itemised,
