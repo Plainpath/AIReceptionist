@@ -23,3 +23,13 @@ committed.
   (flattened Tabs into a single Stack), `mobile/src/screens/{Dashboard,Calendar,Money,ClientList,Timesheet,BusinessSetup}Screen.tsx`,
   removed `mobile/src/navigation/TabBarIcon.tsx` (dead code).
   Commit: (pending — see next `git log` on this branch)
+
+- **2026-09-30** — Quote builder: line price is now editable (tap the rate to
+  type a new one), and the price book is now a single "Price book" button
+  that opens a multi-select sheet (works the same for Flat price, Itemised,
+  and Labour + materials) — replaces the old drag-card gesture UX, which was
+  fiddly especially on web/desktop testing. Generic quote-builder UX fix, not
+  plumbing-specific — worth porting back to `tradie-quotes-app`.
+  Files: `mobile/src/screens/QuoteBuilderScreen.tsx`, removed
+  `mobile/src/components/PriceBookCard.tsx` (dead code, no longer used).
+  Commit: (pending — see next `git log` on this branch)
