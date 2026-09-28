@@ -1,5 +1,6 @@
 import PDFDocument from "pdfkit";
 import { Response } from "express";
+import fs from "fs";
 import { totals } from "../lib/money";
 
 type Line = { label: string; qty: number; unit: string; rate: number; isVariation?: boolean };
@@ -31,9 +32,10 @@ export function renderQuotePdf(
     client: Client;
     kind: "quote" | "invoice";
     paid?: number;
+    photos?: { path: string; takenAt: Date }[];
   }
 ) {
-  const { business, doc, lines, client, kind, paid = 0 } = opts;
+  const { business, doc, lines, client, kind, paid = 0, photos = [] } = opts;
   const isInvoice = kind === "invoice";
   const t = totals(lines, business.depositPercent, paid);
   const accent = business.accentColor || "#5980a6";
@@ -164,6 +166,43 @@ export function renderQuotePdf(
     .fillColor("#333")
     .fontSize(9)
     .text("Quote valid 30 days. Variations quoted separately. All work to AS/NZS 3500.", 310, y, { width: 205 });
+
+  const existingPhotos = photos.filter((p) => fs.existsSync(p.path));
+  if (existingPhotos.length > 0) {
+    pdf.addPage();
+    pdf.fillColor(accent).font("Helvetica-Bold").fontSize(16).text("Completion Photos", 40, 40);
+    pdf.moveTo(40, 64).lineTo(555, 64).lineWidth(2).strokeColor(accent).stroke();
+
+    const cols = 2;
+    const cellW = 245;
+    const cellH = 190;
+    const gap = 25;
+    let px = 40;
+    let py = 84;
+    existingPhotos.forEach((p, i) => {
+      const col = i % cols;
+      if (col === 0 && i > 0) {
+        py += cellH + 28;
+      }
+      if (py + cellH > 780) {
+        pdf.addPage();
+        py = 40;
+      }
+      px = 40 + col * (cellW + gap);
+      try {
+        pdf.image(p.path, px, py, { fit: [cellW, cellH], align: "center", valign: "center" });
+      } catch {
+        // Skip a photo pdfkit can't decode rather than failing the whole PDF.
+      }
+      pdf
+        .fillColor("#777")
+        .font("Helvetica")
+        .fontSize(8)
+        .text(p.takenAt.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" }), px, py + cellH + 4, {
+          width: cellW,
+        });
+    });
+  }
 
   pdf.end();
 }

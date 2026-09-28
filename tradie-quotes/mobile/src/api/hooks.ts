@@ -405,6 +405,36 @@ export function useAddInvoiceVariations(invoiceId: string) {
   });
 }
 
+export function useInvoiceAvailablePhotos(invoiceId: string) {
+  return useQuery({
+    queryKey: ["invoice-available-photos", invoiceId],
+    queryFn: async () => (await api.get<JobPhoto[]>(`/invoices/${invoiceId}/available-photos`)).data,
+    enabled: !!invoiceId,
+  });
+}
+
+export function useAttachInvoicePhotos(invoiceId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (photoIds: string[]) => (await api.post(`/invoices/${invoiceId}/photos`, { photoIds })).data,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["invoices", invoiceId] });
+      qc.invalidateQueries({ queryKey: ["invoice-available-photos", invoiceId] });
+    },
+  });
+}
+
+export function useDetachInvoicePhoto(invoiceId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (photoId: string) => (await api.delete(`/invoices/${invoiceId}/photos/${photoId}`)).data,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["invoices", invoiceId] });
+      qc.invalidateQueries({ queryKey: ["invoice-available-photos", invoiceId] });
+    },
+  });
+}
+
 export function useRecordPayment(invoiceId: string) {
   const qc = useQueryClient();
   return useMutation({

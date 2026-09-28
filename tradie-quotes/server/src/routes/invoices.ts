@@ -5,6 +5,7 @@ import { prisma } from "../lib/db";
 import { AuthedRequest, requireAuth } from "../lib/auth";
 import { totals } from "../lib/money";
 import { renderQuotePdf } from "../pdf/renderDocPdf";
+import { uploadFilePath } from "../lib/uploadStorage";
 
 export const invoicesRouter = Router();
 invoicesRouter.use(requireAuth);
@@ -29,10 +30,59 @@ invoicesRouter.get("/:id", async (req: AuthedRequest, res) => {
   const business = await prisma.business.findUniqueOrThrow({ where: { id: req.auth!.businessId } });
   const invoice = await prisma.invoice.findFirst({
     where: { id: req.params.id, businessId: req.auth!.businessId },
-    include: { client: true, lines: true, payments: true },
+    include: { client: true, lines: true, payments: true, photos: true },
   });
   if (!invoice) return res.status(404).json({ error: "Not found" });
   res.json(withTotals(invoice, business.depositPercent));
+});
+
+// Photos taken on jobs for this invoice's client, available to attach as
+// completion photos — whether or not they're already attached elsewhere.
+invoicesRouter.get("/:id/available-photos", async (req: AuthedRequest, res) => {
+  const invoice = await prisma.invoice.findFirst({ where: { id: req.params.id, businessId: req.auth!.businessId } });
+  if (!invoice) return res.status(404).json({ error: "Not found" });
+  const photos = await prisma.jobPhoto.findMany({
+    where: { businessId: req.auth!.businessId, job: { clientId: invoice.clientId } },
+    include: { job: true },
+    orderBy: { takenAt: "desc" },
+  });
+  res.json(photos);
+});
+
+const attachPhotosSchema = z.object({ photoIds: z.array(z.string()).min(1) });
+
+invoicesRouter.post("/:id/photos", async (req: AuthedRequest, res) => {
+  const parsed = attachPhotosSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  const invoice = await prisma.invoice.findFirst({ where: { id: req.params.id, businessId: req.auth!.businessId } });
+  if (!invoice) return res.status(404).json({ error: "Not found" });
+
+  const result = await prisma.jobPhoto.updateMany({
+    where: { id: { in: parsed.data.photoIds }, businessId: req.auth!.businessId, job: { clientId: invoice.clientId } },
+    data: { invoiceId: invoice.id },
+  });
+
+  await prisma.activityEvent.create({
+    data: {
+      businessId: req.auth!.businessId,
+      clientId: invoice.clientId,
+      kind: "Photos attached",
+      text: `${result.count} completion photo${result.count === 1 ? "" : "s"} attached to ${invoice.ref}.`,
+      invoiceId: invoice.id,
+    },
+  });
+
+  res.status(201).json({ attached: result.count });
+});
+
+invoicesRouter.delete("/:id/photos/:photoId", async (req: AuthedRequest, res) => {
+  const photo = await prisma.jobPhoto.findFirst({
+    where: { id: req.params.photoId, invoiceId: req.params.id, businessId: req.auth!.businessId },
+  });
+  if (!photo) return res.status(404).json({ error: "Not found" });
+  await prisma.jobPhoto.update({ where: { id: photo.id }, data: { invoiceId: null } });
+  res.status(204).end();
 });
 
 invoicesRouter.post("/:id/send", async (req: AuthedRequest, res) => {
@@ -134,7 +184,7 @@ invoicesRouter.get("/:id/pdf", async (req: AuthedRequest, res) => {
   const business = await prisma.business.findUniqueOrThrow({ where: { id: req.auth!.businessId } });
   const invoice = await prisma.invoice.findFirst({
     where: { id: req.params.id, businessId: req.auth!.businessId },
-    include: { client: true, lines: true, payments: true },
+    include: { client: true, lines: true, payments: true, photos: true },
   });
   if (!invoice) return res.status(404).json({ error: "Not found" });
   res.setHeader("Content-Type", "application/pdf");
@@ -146,5 +196,6 @@ invoicesRouter.get("/:id/pdf", async (req: AuthedRequest, res) => {
     client: invoice.client,
     kind: "invoice",
     paid: invoice.payments.reduce((s, p) => s + p.amount, 0),
+    photos: invoice.photos.map((p) => ({ path: uploadFilePath("job-photos", p.businessId, p.storedName), takenAt: p.takenAt })),
   });
 });

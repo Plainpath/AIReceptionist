@@ -157,6 +157,7 @@ model Invoice {
   lines    InvoiceLine[]
   payments Payment[]
   activity ActivityEvent[]
+  photos   JobPhoto[]
 }
 
 model InvoiceLine {
@@ -233,6 +234,8 @@ model JobPhoto {
   latitude   Float?
   longitude  Float?
   takenAt    DateTime @default(now())
+  invoiceId  String?
+  invoice    Invoice? @relation(fields: [invoiceId], references: [id])
 }
 
 model SafetyDocument {

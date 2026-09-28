@@ -86,6 +86,7 @@ export type Invoice = {
   paid: number;
   totals: Totals;
   quote?: { ref: string } | null;
+  photos?: JobPhoto[];
 };
 
 export type Role = "Owner" | "Employee";
@@ -149,6 +150,7 @@ export type JobPhoto = {
   latitude: number | null;
   longitude: number | null;
   takenAt: string;
+  job?: { id: string; title: string };
 };
 
 export type SafetyDocument = {

@@ -45,7 +45,7 @@ publicRouter.post("/quotes/:token/accept", async (req, res) => {
 publicRouter.get("/invoices/:token", async (req, res) => {
   const invoice = await prisma.invoice.findUnique({
     where: { shareToken: req.params.token },
-    include: { client: true, lines: true, payments: true, business: true },
+    include: { client: true, lines: true, payments: true, business: true, photos: true },
   });
   if (!invoice) return res.status(404).send("Invoice not found");
   await prisma.invoice.update({ where: { id: invoice.id }, data: { viewedCount: { increment: 1 } } });
@@ -57,16 +57,25 @@ publicRouter.get("/invoices/:token", async (req, res) => {
   h1{font-size:22px}.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}
   .total{font-weight:700;font-size:18px;background:${invoice.business.accentColor};color:#fff;padding:10px;margin-top:8px}
   button{width:100%;padding:14px;font-size:16px;font-weight:700;background:${invoice.business.accentColor};color:#fff;border:0;border-radius:6px;margin-top:20px}
-  .status{color:#2f6b52;font-weight:600}</style></head><body>
+  .status{color:#2f6b52;font-weight:600}
+  .photos{margin-top:24px}.photos h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#777}
+  .photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.photo-grid img{width:100%;border-radius:6px;display:block}</style></head><body>
   <div style="color:${invoice.business.accentColor};font-size:12px;letter-spacing:.1em;text-transform:uppercase">${invoice.business.name}</div>
   <h1>Tax Invoice ${invoice.ref}</h1>
   <p>Billed to ${invoice.client.name}</p>
-  ${invoice.lines.map((l) => `<div class="row"><span>${l.label}</span><span>${aud(l.qty * l.rate, true)}</span></div>`).join("")}
+  ${invoice.lines.map((l) => `<div class="row"><span>${l.label}${l.isVariation ? " (Variation)" : ""}</span><span>${aud(l.qty * l.rate, true)}</span></div>`).join("")}
   <div class="total">Balance due: ${aud(Math.max(0, t.balance), true)}</div>
   ${
     t.balance <= 0.01
       ? '<p class="status">Paid in full — thank you.</p>'
       : `<form method="post" action="/public/invoices/${invoice.shareToken}/pay"><button type="submit">Pay now · ${aud(Math.max(0, t.balance), true)}</button></form>`
+  }
+  ${
+    invoice.photos.length > 0
+      ? `<div class="photos"><h2>Completion photos</h2><div class="photo-grid">${invoice.photos
+          .map((p) => `<img src="/jobs/${p.jobId}/photos/${p.id}/file" alt="Completion photo">`)
+          .join("")}</div></div>`
+      : ""
   }
   </body></html>`);
 });

@@ -1,9 +1,21 @@
 import React, { useState } from "react";
-import { ActivityIndicator, Linking, ScrollView, Share, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Image, Linking, ScrollView, Share, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 import { useTheme } from "../theme/ThemeProvider";
-import { useAddInvoiceVariations, useBusiness, useInvoice, usePriceBook, useQuote, useRecordPayment, useSendInvoice, useSendQuote } from "../api/hooks";
+import {
+  useAddInvoiceVariations,
+  useAttachInvoicePhotos,
+  useBusiness,
+  useDetachInvoicePhoto,
+  useInvoice,
+  useInvoiceAvailablePhotos,
+  usePriceBook,
+  useQuote,
+  useRecordPayment,
+  useSendInvoice,
+  useSendQuote,
+} from "../api/hooks";
 import { BlueprintBox } from "../components/Blueprint";
 import { Tag } from "../components/Tag";
 import { Button } from "../components/Button";
@@ -32,11 +44,16 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
   const recordPayment = useRecordPayment(invoiceId || "");
   const priceBook = usePriceBook();
   const addVariations = useAddInvoiceVariations(invoiceId || "");
+  const availablePhotos = useInvoiceAvailablePhotos(invoiceId || "");
+  const attachPhotos = useAttachInvoicePhotos(invoiceId || "");
+  const detachPhoto = useDetachInvoicePhoto(invoiceId || "");
   const { toast, flash } = useToast();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [payOpen, setPayOpen] = useState(false);
   const [variationsOpen, setVariationsOpen] = useState(false);
+  const [photosOpen, setPhotosOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set());
   const [customAmount, setCustomAmount] = useState("");
   const [sending, setSending] = useState(false);
   const [resending, setResending] = useState(false);
@@ -102,6 +119,24 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
         },
       }
     );
+  };
+
+  const togglePhoto = (id: string) =>
+    setSelectedPhotoIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const addSelectedPhotos = () => {
+    if (selectedPhotoIds.size === 0) return;
+    attachPhotos.mutate([...selectedPhotoIds], {
+      onSuccess: (r: any) => {
+        setSelectedPhotoIds(new Set());
+        setPhotosOpen(false);
+        flash(`${r.attached} completion photo${r.attached === 1 ? "" : "s"} attached`);
+      },
+    });
   };
 
   const onResend = async () => {
@@ -318,10 +353,39 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
               </Text>
             </View>
           </View>
+
+          {isInvoice && (doc as any).photos?.length > 0 && (
+            <View style={{ marginTop: 20, paddingTop: 14, borderTopWidth: 1, borderTopColor: PAPER.divider }}>
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 8.5, letterSpacing: 1.2, textTransform: "uppercase", color: PAPER.label, marginBottom: 8 }}>
+                Completion Photos
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                {(doc as any).photos.map((p: any) => (
+                  <View key={p.id} style={{ width: 84 }}>
+                    <Image
+                      source={{ uri: `${API_URL}/jobs/${p.jobId}/photos/${p.id}/file` }}
+                      style={{ width: 84, height: 84, borderRadius: 4, backgroundColor: "#eee" }}
+                    />
+                    <Button
+                      variant="ghost"
+                      minHeight={0}
+                      style={{ borderWidth: 0, paddingHorizontal: 0, alignSelf: "flex-start" }}
+                      onPress={() => detachPhoto.mutate(p.id)}
+                    >
+                      <Text style={{ fontSize: 10, color: PAPER.body, textDecorationLine: "underline" }}>Remove</Text>
+                    </Button>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
         </BlueprintBox>
       </ScrollView>
 
       <View style={{ borderTopWidth: 1, borderTopColor: theme.colors.divider, padding: 16, gap: 8 }}>
+        {isInvoice && (
+          <Button label="Insert completion photos" variant="secondary" minHeight={44} onPress={() => setPhotosOpen(true)} />
+        )}
         {outstanding && (
           <Button label="Variations" variant="secondary" minHeight={44} onPress={() => setVariationsOpen(true)} />
         )}
@@ -509,6 +573,85 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
               minHeight={40}
               disabled={selectedItems.length === 0 || addVariations.isPending}
               onPress={addSelectedVariations}
+            />
+          </View>
+        </Sheet>
+      )}
+
+      {isInvoice && (
+        <Sheet visible={photosOpen} onClose={() => setPhotosOpen(false)}>
+          <Text style={{ fontFamily: theme.fonts.heading, fontSize: 19, color: theme.colors.text }}>Insert completion photos</Text>
+          <Text style={{ fontFamily: theme.fonts.body, fontSize: 12.5, color: theme.colors.neutral[700], marginTop: 3 }}>
+            From job photos for {client.name} — attached photos are included when this invoice is sent, on the PDF and the hosted link.
+          </Text>
+          <ScrollView style={{ maxHeight: 400, marginTop: 12 }}>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+              {(availablePhotos.data || []).map((p) => {
+                const selected = selectedPhotoIds.has(p.id);
+                return (
+                  <Button
+                    key={p.id}
+                    variant="ghost"
+                    minHeight={0}
+                    style={{ width: 100, borderWidth: 0, paddingHorizontal: 0, flexDirection: "column", alignItems: "flex-start" }}
+                    onPress={() => togglePhoto(p.id)}
+                  >
+                    <View>
+                      <Image
+                        source={{ uri: `${API_URL}/jobs/${p.jobId}/photos/${p.id}/file` }}
+                        style={{
+                          width: 100,
+                          height: 100,
+                          borderRadius: theme.radius.sm,
+                          backgroundColor: theme.colors.neutral[200],
+                          borderWidth: selected ? 3 : 0,
+                          borderColor: theme.colors.accent.accent,
+                        }}
+                      />
+                      {selected && (
+                        <View
+                          style={{
+                            position: "absolute",
+                            top: 4,
+                            right: 4,
+                            width: 20,
+                            height: 20,
+                            borderRadius: 10,
+                            backgroundColor: theme.colors.accent.accent,
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Text style={{ color: "#fff", fontSize: 12 }}>✓</Text>
+                        </View>
+                      )}
+                    </View>
+                    {p.job && (
+                      <Text style={{ fontFamily: theme.fonts.body, fontSize: 10, color: theme.colors.neutral[600], marginTop: 3 }} numberOfLines={1}>
+                        {p.job.title}
+                      </Text>
+                    )}
+                  </Button>
+                );
+              })}
+              {(availablePhotos.data || []).length === 0 && (
+                <Text style={{ fontFamily: theme.fonts.body, fontSize: 12.5, color: theme.colors.neutral[600], padding: 8 }}>
+                  No job photos for this client yet — take some from a job's calendar entry first.
+                </Text>
+              )}
+            </View>
+          </ScrollView>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 14 }}>
+            <Text style={{ flex: 1, fontFamily: theme.fonts.body, fontSize: 12.5, color: theme.colors.neutral[700] }}>
+              {selectedPhotoIds.size} selected
+            </Text>
+            <Button label="Cancel" variant="secondary" minHeight={40} onPress={() => setPhotosOpen(false)} />
+            <Button
+              label="Attach"
+              variant="primary"
+              minHeight={40}
+              disabled={selectedPhotoIds.size === 0 || attachPhotos.isPending}
+              onPress={addSelectedPhotos}
             />
           </View>
         </Sheet>

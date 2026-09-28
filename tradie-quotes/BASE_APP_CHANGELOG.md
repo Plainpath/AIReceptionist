@@ -24,6 +24,22 @@ committed.
   removed `mobile/src/navigation/TabBarIcon.tsx` (dead code).
   Commit: (pending — see next `git log` on this branch)
 
+- **2026-09-30** — Added "Insert completion photos" to the invoice preview:
+  attach job photos (taken via the Calendar job details screen) to an
+  invoice, and they're genuinely included wherever the invoice is sent —
+  embedded as a "Completion Photos" page in the real PDF (share sheet), and
+  as an image gallery on the hosted public invoice page (copy-link/email
+  flows, since mailto can't carry attachments). Backend links JobPhoto to
+  Invoice via a nullable `invoiceId`; available photos are scoped to jobs
+  for that invoice's client. Generic invoicing capability, not
+  plumbing-specific — worth porting back to `tradie-quotes-app`.
+  Files: `server/prisma/schema.prisma` (`JobPhoto.invoiceId`),
+  `server/src/routes/invoices.ts` (available-photos, attach/detach),
+  `server/src/pdf/renderDocPdf.ts` (photos page), `server/src/routes/public.ts`
+  (photo gallery on hosted page), `mobile/src/api/{hooks,types}.ts`,
+  `mobile/src/screens/PdfPreviewScreen.tsx`.
+  Commit: (pending — see next `git log` on this branch)
+
 - **2026-09-30** — Linked timesheets to job management per client, so labour
   hours are traceable: `GET /timesheets` now accepts `jobId`/`clientId`
   filters (joins through Job), `GET /jobs` accepts `clientId`, timesheet
