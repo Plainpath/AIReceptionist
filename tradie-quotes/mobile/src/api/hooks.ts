@@ -51,10 +51,12 @@ export function useRemoveEmployee() {
 }
 
 // ---- Timesheets ----
-export function useTimesheets(from?: string, to?: string) {
+export function useTimesheets(params?: { from?: string; to?: string; jobId?: string; clientId?: string; enabled?: boolean }) {
+  const { enabled = true, ...query } = params || {};
   return useQuery({
-    queryKey: ["timesheets", from, to],
-    queryFn: async () => (await api.get<TimesheetEntry[]>("/timesheets", { params: { from, to } })).data,
+    queryKey: ["timesheets", query.from, query.to, query.jobId, query.clientId],
+    queryFn: async () => (await api.get<TimesheetEntry[]>("/timesheets", { params: query })).data,
+    enabled,
   });
 }
 
@@ -256,6 +258,13 @@ export function useJobs(fromISO: string, toISO: string) {
   return useQuery({
     queryKey: ["jobs", fromISO, toISO],
     queryFn: async () => (await api.get<Job[]>("/jobs", { params: { from: fromISO, to: toISO } })).data,
+  });
+}
+
+export function useJobsForClient(clientId: string) {
+  return useQuery({
+    queryKey: ["jobs", "client", clientId],
+    queryFn: async () => (await api.get<Job[]>("/jobs", { params: { clientId } })).data,
   });
 }
 

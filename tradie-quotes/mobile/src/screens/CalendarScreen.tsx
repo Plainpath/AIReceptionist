@@ -11,6 +11,7 @@ import {
   useJobs,
   useNotifyArrival,
   useRescheduleJob,
+  useTimesheets,
   useUpdateJobStatus,
   useUploadJobPhoto,
 } from "../api/hooks";
@@ -55,6 +56,11 @@ export function CalendarScreen({}: RootScreenProps<"Calendar">) {
   const [detailsJob, setDetailsJob] = useState<Job | null>(null);
   const photos = useJobPhotos(detailsJob?.id || null);
   const uploadPhoto = useUploadJobPhoto(detailsJob?.id || "");
+  const jobTimesheets = useTimesheets({ jobId: detailsJob?.id, enabled: !!detailsJob });
+  const jobHours = (jobTimesheets.data || []).reduce(
+    (sum, e) => (e.clockOut ? sum + (new Date(e.clockOut).getTime() - new Date(e.clockIn).getTime()) / 3600000 : sum),
+    0
+  );
 
   const addPhoto = async () => {
     if (!detailsJob) return;
@@ -285,6 +291,9 @@ export function CalendarScreen({}: RootScreenProps<"Calendar">) {
             </View>
             <Text style={{ fontFamily: theme.fonts.body, fontSize: 12.5, color: theme.colors.neutral[700], marginTop: 4 }}>
               {detailsJob.client.name} · {new Date(detailsJob.scheduledStart).toLocaleString("en-AU", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
+            </Text>
+            <Text style={{ fontFamily: theme.fonts.body, fontSize: 12, color: theme.colors.accent[700], marginTop: 4 }}>
+              {jobHours > 0 ? `${jobHours < 1 ? jobHours.toFixed(1) : Math.round(jobHours)} labour hrs logged` : "No labour hours logged yet"}
             </Text>
 
             <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: theme.colors.neutral[600], marginTop: 16 }}>

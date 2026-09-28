@@ -7,21 +7,35 @@ export const timesheetsRouter = Router();
 timesheetsRouter.use(requireAuth);
 
 timesheetsRouter.get("/", async (req: AuthedRequest, res) => {
-  const { from, to, userId } = req.query as { from?: string; to?: string; userId?: string };
+  const { from, to, userId, jobId, clientId } = req.query as {
+    from?: string;
+    to?: string;
+    userId?: string;
+    jobId?: string;
+    clientId?: string;
+  };
   const isOwner = req.auth!.role === "Owner";
 
   const entries = await prisma.timesheetEntry.findMany({
     where: {
       businessId: req.auth!.businessId,
       userId: isOwner ? userId || undefined : req.auth!.userId,
+      jobId: jobId || undefined,
+      ...(clientId ? { job: { clientId } } : {}),
       ...(from || to
         ? { clockIn: { ...(from ? { gte: new Date(from) } : {}), ...(to ? { lte: new Date(to) } : {}) } }
         : {}),
     },
-    include: { user: true, job: true },
+    include: { user: true, job: { include: { client: true } } },
     orderBy: { clockIn: "desc" },
   });
-  res.json(entries.map((e) => ({ ...e, user: { id: e.user.id, name: e.user.name } })));
+  res.json(
+    entries.map((e) => ({
+      ...e,
+      user: { id: e.user.id, name: e.user.name },
+      job: e.job ? { id: e.job.id, title: e.job.title, client: { id: e.job.client.id, name: e.job.client.name } } : null,
+    }))
+  );
 });
 
 timesheetsRouter.get("/open", async (req: AuthedRequest, res) => {

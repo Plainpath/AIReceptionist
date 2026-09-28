@@ -24,6 +24,20 @@ committed.
   removed `mobile/src/navigation/TabBarIcon.tsx` (dead code).
   Commit: (pending — see next `git log` on this branch)
 
+- **2026-09-30** — Linked timesheets to job management per client, so labour
+  hours are traceable: `GET /timesheets` now accepts `jobId`/`clientId`
+  filters (joins through Job), `GET /jobs` accepts `clientId`, timesheet
+  entries now include the job's client. Client detail screen gained a
+  "Labour hrs" stat tile and a "Jobs & labour" section listing every job for
+  that client with hours logged against each; the Calendar job-details sheet
+  now shows total labour hours logged for that job; the Timesheet tab's
+  entries show client name alongside job title. Generic capability tying
+  together three existing systems (timesheets, jobs, clients), not
+  plumbing-specific — worth porting back to `tradie-quotes-app`.
+  Files: `server/src/routes/{timesheets,jobs}.ts`, `mobile/src/api/{hooks,types}.ts`,
+  `mobile/src/screens/{ClientDetail,Calendar,Timesheet}Screen.tsx`.
+  Commit: (pending — see next `git log` on this branch)
+
 - **2026-09-30** — Added invoice variations: a "Variations" button on the
   invoice preview (only while outstanding) opens the same price-book
   multi-select sheet used in the quote builder, and adds selected items as

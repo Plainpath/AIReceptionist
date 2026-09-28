@@ -140,7 +140,7 @@ export function TimesheetScreen({}: RootScreenProps<"Timesheet">) {
                       {new Date(e.clockIn).toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit" })}
                       {" – "}
                       {e.clockOut ? new Date(e.clockOut).toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit" }) : "now"}
-                      {e.job ? ` · ${e.job.title}` : ""}
+                      {e.job ? ` · ${e.job.title}${e.job.client ? ` (${e.job.client.name})` : ""}` : ""}
                     </Text>
                   </View>
                   <Text style={{ fontFamily: theme.fonts.heading, fontSize: 15, color: theme.colors.text }}>{formatDuration(durationMs)}</Text>

@@ -2,7 +2,7 @@ import React from "react";
 import { ActivityIndicator, Linking, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../theme/ThemeProvider";
-import { useClient } from "../api/hooks";
+import { useClient, useJobsForClient, useTimesheets } from "../api/hooks";
 import { Tag } from "../components/Tag";
 import { BlueprintBox } from "../components/Blueprint";
 import { Button } from "../components/Button";
@@ -14,6 +14,8 @@ export function ClientDetailScreen({ route, navigation }: RootScreenProps<"Clien
   const theme = useTheme();
   const { clientId } = route.params;
   const client = useClient(clientId);
+  const jobs = useJobsForClient(clientId);
+  const timesheets = useTimesheets({ clientId });
   const { toast, flash } = useToast();
 
   if (client.isLoading || !client.data) {
@@ -25,6 +27,16 @@ export function ClientDetailScreen({ route, navigation }: RootScreenProps<"Clien
   }
 
   const c = client.data;
+
+  const hoursByJob = new Map<string, number>();
+  let totalHours = 0;
+  for (const e of timesheets.data || []) {
+    if (!e.clockOut) continue;
+    const hrs = (new Date(e.clockOut).getTime() - new Date(e.clockIn).getTime()) / 3600000;
+    totalHours += hrs;
+    if (e.job) hoursByJob.set(e.job.id, (hoursByJob.get(e.job.id) || 0) + hrs);
+  }
+  const formatHours = (h: number) => (h === 0 ? "0" : h < 1 ? h.toFixed(1) : Math.round(h).toString());
 
   const onDirections = () => {
     if (!c.address) return flash("No address on file for this client");
@@ -63,6 +75,12 @@ export function ClientDetailScreen({ route, navigation }: RootScreenProps<"Clien
               </Text>
               <Text style={{ fontFamily: theme.fonts.heading, fontSize: 21, color: theme.colors.text, marginTop: 3 }}>{aud(c.lifetime)}</Text>
             </View>
+            <View style={{ flex: 1, padding: 11, borderLeftWidth: 1, borderLeftColor: theme.colors.divider }}>
+              <Text style={{ fontFamily: theme.fonts.body, fontSize: 9, letterSpacing: 1.2, textTransform: "uppercase", color: theme.colors.neutral[600] }}>
+                Labour hrs
+              </Text>
+              <Text style={{ fontFamily: theme.fonts.heading, fontSize: 21, color: theme.colors.text, marginTop: 3 }}>{formatHours(totalHours)}</Text>
+            </View>
           </BlueprintBox>
           <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
             <Button label="New quote" variant="primary" flex minHeight={44} onPress={() => navigation.navigate("QuoteBuilder", { clientId: c.id })} />
@@ -72,6 +90,58 @@ export function ClientDetailScreen({ route, navigation }: RootScreenProps<"Clien
           <View style={{ marginTop: 8 }}>
             <Button label="Directions" variant="secondary" minHeight={44} onPress={onDirections} />
           </View>
+        </View>
+
+        <Text
+          style={{
+            paddingHorizontal: 16,
+            paddingTop: 26,
+            paddingBottom: 8,
+            fontFamily: theme.fonts.body,
+            fontSize: 10,
+            letterSpacing: 1.6,
+            textTransform: "uppercase",
+            color: theme.colors.neutral[700],
+          }}
+        >
+          Jobs & labour
+        </Text>
+        <View style={{ paddingHorizontal: 16 }}>
+          <BlueprintBox>
+            {(jobs.data || []).map((j, i) => (
+              <Button
+                key={j.id}
+                variant="ghost"
+                minHeight={0}
+                style={{
+                  borderWidth: 0,
+                  borderTopWidth: i === 0 ? 0 : 1,
+                  borderTopColor: theme.colors.divider,
+                  justifyContent: "flex-start",
+                  paddingHorizontal: 13,
+                  paddingVertical: 11,
+                }}
+                onPress={() => navigation.navigate("Calendar")}
+              >
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={{ fontFamily: theme.fonts.heading, fontSize: 14, color: theme.colors.text }} numberOfLines={1}>
+                    {j.title}
+                  </Text>
+                  <Text style={{ fontFamily: theme.fonts.body, fontSize: 11, color: theme.colors.neutral[600], marginTop: 2 }}>
+                    {j.status} · {new Date(j.scheduledStart).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
+                  </Text>
+                </View>
+                <Text style={{ fontFamily: theme.fonts.heading, fontSize: 14, color: theme.colors.text }}>
+                  {formatHours(hoursByJob.get(j.id) || 0)} hrs
+                </Text>
+              </Button>
+            ))}
+            {(jobs.data || []).length === 0 && (
+              <Text style={{ padding: 16, fontFamily: theme.fonts.body, fontSize: 12.5, color: theme.colors.neutral[600] }}>
+                No jobs scheduled for this client yet.
+              </Text>
+            )}
+          </BlueprintBox>
         </View>
 
         <Text

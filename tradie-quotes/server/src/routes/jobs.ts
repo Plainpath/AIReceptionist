@@ -9,10 +9,11 @@ export const jobsRouter = Router();
 jobsRouter.use(requireAuth);
 
 jobsRouter.get("/", async (req: AuthedRequest, res) => {
-  const { from, to } = req.query as { from?: string; to?: string };
+  const { from, to, clientId } = req.query as { from?: string; to?: string; clientId?: string };
   const jobs = await prisma.job.findMany({
     where: {
       businessId: req.auth!.businessId,
+      clientId: clientId || undefined,
       ...(from || to
         ? {
             scheduledStart: {
@@ -23,7 +24,7 @@ jobsRouter.get("/", async (req: AuthedRequest, res) => {
         : {}),
     },
     include: { client: true, quote: true },
-    orderBy: { scheduledStart: "asc" },
+    orderBy: { scheduledStart: "desc" },
   });
   res.json(jobs);
 });

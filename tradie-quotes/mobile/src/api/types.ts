@@ -101,7 +101,7 @@ export type TimesheetEntry = {
   userId: string;
   user: { id: string; name: string };
   jobId: string | null;
-  job: { id: string; title: string } | null;
+  job: { id: string; title: string; client?: { id: string; name: string } } | null;
   clockIn: string;
   clockOut: string | null;
   note: string | null;
