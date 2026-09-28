@@ -1,10 +1,17 @@
 import axios from "axios";
 import Constants from "expo-constants";
+import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const TOKEN_KEY = "tradie-quotes/token";
 
 function devApiUrl() {
+  // On web, Expo's native manifest hostUri isn't populated — the page's own
+  // location (whatever host/IP the browser used to load it) is the only
+  // reliable source, so this also works when opened from a phone over LAN.
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    return `http://${window.location.hostname}:4000`;
+  }
   const hostUri = (Constants.expoConfig as any)?.hostUri || (Constants as any).expoGoConfig?.debuggerHost;
   const host = hostUri ? String(hostUri).split(":")[0] : "localhost";
   return `http://${host}:4000`;

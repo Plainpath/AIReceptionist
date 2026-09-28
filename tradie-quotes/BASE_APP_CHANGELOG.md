@@ -24,6 +24,19 @@ committed.
   removed `mobile/src/navigation/TabBarIcon.tsx` (dead code).
   Commit: (pending — see next `git log` on this branch)
 
+- **2026-09-30** — Fixed API host detection on web: `devApiUrl()` relied on
+  Expo's native manifest `hostUri`, which isn't populated for a plain web
+  page, so every web session silently fell back to `localhost`. That
+  happened to work when testing from the same PC (localhost = the server)
+  but silently broke every API call — including login — when the app was
+  opened from a phone over LAN (localhost = the phone itself, no server
+  there). Now uses `window.location.hostname` on web, which reflects
+  whatever host/IP the browser actually used to load the page. Generic bug
+  affecting any LAN/phone testing of the web build, not plumbing-specific —
+  worth porting back to `tradie-quotes-app`.
+  Files: `mobile/src/api/client.ts`.
+  Commit: (pending — see next `git log` on this branch)
+
 - **2026-09-30** — Added "Insert completion photos" to the invoice preview:
   attach job photos (taken via the Calendar job details screen) to an
   invoice, and they're genuinely included wherever the invoice is sent —
