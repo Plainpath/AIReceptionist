@@ -101,7 +101,7 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
   const finishSend = (msg: string) => {
     setSheetOpen(false);
     flash(msg);
-    setTimeout(() => navigation.navigate("Tabs"), 700);
+    setTimeout(() => navigation.navigate("Money"), 700);
   };
 
   const onShareFile = async () => {

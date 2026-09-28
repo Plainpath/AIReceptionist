@@ -14,4 +14,12 @@ committed.
 
 ## Log
 
-_(none yet)_
+- **2026-09-29** — Replaced the bottom tab bar with a two-tier kebab (3-dot) menu
+  navigation: a top-left menu on every main screen is the app's primary
+  navigation (role-gated section list), and an optional top-right kebab per
+  screen surfaces page-specific quick actions. Generic nav pattern, not
+  plumbing-specific — worth porting back to `tradie-quotes-app`.
+  Files: `mobile/src/components/AppHeader.tsx` (new), `mobile/src/navigation/{types,RootNavigator}.tsx`
+  (flattened Tabs into a single Stack), `mobile/src/screens/{Dashboard,Calendar,Money,ClientList,Timesheet,BusinessSetup}Screen.tsx`,
+  removed `mobile/src/navigation/TabBarIcon.tsx` (dead code).
+  Commit: (pending — see next `git log` on this branch)

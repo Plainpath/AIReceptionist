@@ -11,11 +11,12 @@ import {
 } from "../api/hooks";
 import { BlueprintBox } from "../components/Blueprint";
 import { SegmentedControl } from "../components/SegmentedControl";
+import { AppHeader } from "../components/AppHeader";
 import { Tag } from "../components/Tag";
 import { Toast, useToast } from "../components/Toast";
 import { aud } from "../lib/format";
 import type { Invoice, Quote } from "../api/types";
-import type { TabScreenProps } from "../navigation/types";
+import type { RootScreenProps } from "../navigation/types";
 
 function invoiceTagColors(theme: ReturnType<typeof useTheme>, status: Invoice["status"]) {
   if (status === "Overdue") return { bg: theme.colors.accent[900], fg: "#fff" };
@@ -23,7 +24,7 @@ function invoiceTagColors(theme: ReturnType<typeof useTheme>, status: Invoice["s
   return { bg: theme.colors.accent[100], fg: theme.colors.accent[800] };
 }
 
-export function MoneyScreen({ navigation, route }: TabScreenProps<"Money">) {
+export function MoneyScreen({ navigation, route }: RootScreenProps<"Money">) {
   const theme = useTheme();
   const [tab, setTab] = useState<"quotes" | "invoices">(route.params?.tab || "quotes");
 
@@ -61,7 +62,8 @@ export function MoneyScreen({ navigation, route }: TabScreenProps<"Money">) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.bg }} edges={["top", "left", "right"]}>
-      <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+      <AppHeader title="Money" actions={[{ label: "BAS / accounting summary", onPress: () => navigation.navigate("AccountingSummary") }]} />
+      <View style={{ paddingHorizontal: 16, paddingTop: 4 }}>
         <Text style={{ fontFamily: theme.fonts.heading, fontWeight: "600", fontSize: 26, color: theme.colors.text }}>Money</Text>
         <View style={{ marginTop: 14 }}>
           <SegmentedControl

@@ -4,15 +4,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../theme/ThemeProvider";
 import { useClients } from "../api/hooks";
 import { BlueprintBox } from "../components/Blueprint";
-import type { TabScreenProps } from "../navigation/types";
+import { AppHeader } from "../components/AppHeader";
+import type { RootScreenProps } from "../navigation/types";
 
-export function ClientListScreen({ navigation }: TabScreenProps<"Clients">) {
+export function ClientListScreen({ navigation }: RootScreenProps<"Clients">) {
   const theme = useTheme();
   const clients = useClients();
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.bg }} edges={["top", "left", "right"]}>
-      <View style={{ paddingHorizontal: 16, paddingTop: 12 }}>
+      <AppHeader title="Clients" />
+      <View style={{ paddingHorizontal: 16, paddingTop: 4 }}>
         <Text style={{ fontFamily: theme.fonts.heading, fontWeight: "600", fontSize: 26, color: theme.colors.text }}>Clients</Text>
       </View>
       {clients.isLoading ? (

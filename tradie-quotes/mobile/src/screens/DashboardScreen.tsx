@@ -7,11 +7,12 @@ import { useBusiness, useInvoices, useLeads, useQuotes } from "../api/hooks";
 import { BlueprintBox } from "../components/Blueprint";
 import { Tag } from "../components/Tag";
 import { Button } from "../components/Button";
+import { AppHeader } from "../components/AppHeader";
 import { aud } from "../lib/format";
-import type { TabScreenProps } from "../navigation/types";
+import type { RootScreenProps } from "../navigation/types";
 import { useQueryClient } from "@tanstack/react-query";
 
-type Props = TabScreenProps<"Dashboard">;
+type Props = RootScreenProps<"Dashboard">;
 
 function QuotesIcon({ color }: { color: string }) {
   return (
@@ -104,6 +105,7 @@ export function DashboardScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.bg }} edges={["top", "left", "right"]}>
+      <AppHeader title="" />
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}

@@ -6,8 +6,9 @@ import { useClockIn, useClockOut, useJobs, useMe, useOpenTimesheet, useTimesheet
 import { BlueprintBox } from "../components/Blueprint";
 import { Button } from "../components/Button";
 import { Tag } from "../components/Tag";
+import { AppHeader } from "../components/AppHeader";
 import { Toast, useToast } from "../components/Toast";
-import type { TabScreenProps } from "../navigation/types";
+import type { RootScreenProps } from "../navigation/types";
 
 function formatDuration(ms: number) {
   const mins = Math.floor(ms / 60000);
@@ -16,7 +17,7 @@ function formatDuration(ms: number) {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-export function TimesheetScreen({}: TabScreenProps<"Timesheet">) {
+export function TimesheetScreen({}: RootScreenProps<"Timesheet">) {
   const theme = useTheme();
   const { toast, flash } = useToast();
   const me = useMe();
@@ -50,6 +51,7 @@ export function TimesheetScreen({}: TabScreenProps<"Timesheet">) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.bg }} edges={["top", "left", "right"]}>
+      <AppHeader title="Timesheet" />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
         <Text style={{ fontFamily: theme.fonts.heading, fontWeight: "600", fontSize: 26, color: theme.colors.text }}>Timesheet</Text>
 

@@ -20,8 +20,9 @@ import { Button } from "../components/Button";
 import { JobCard } from "../components/JobCard";
 import { Sheet } from "../components/Sheet";
 import { Tag } from "../components/Tag";
+import { AppHeader } from "../components/AppHeader";
 import { Toast, useToast } from "../components/Toast";
-import type { TabScreenProps } from "../navigation/types";
+import type { RootScreenProps } from "../navigation/types";
 import type { Job } from "../api/types";
 
 const STATUSES: Job["status"][] = ["Scheduled", "In progress", "Completed", "Cancelled"];
@@ -37,7 +38,7 @@ function startOfWeek(d: Date) {
   return s;
 }
 
-export function CalendarScreen({}: TabScreenProps<"Calendar">) {
+export function CalendarScreen({}: RootScreenProps<"Calendar">) {
   const theme = useTheme();
   const { toast, flash } = useToast();
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
@@ -161,7 +162,8 @@ export function CalendarScreen({}: TabScreenProps<"Calendar">) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.bg }} edges={["top", "left", "right"]}>
-      <View style={{ paddingHorizontal: 16, paddingTop: 12, flexDirection: "row", alignItems: "center" }}>
+      <AppHeader title="Calendar" actions={[{ label: "New job today", onPress: () => openCreate(new Date()) }]} />
+      <View style={{ paddingHorizontal: 16, paddingTop: 4, flexDirection: "row", alignItems: "center" }}>
         <Text style={{ fontFamily: theme.fonts.heading, fontWeight: "600", fontSize: 26, color: theme.colors.text, flex: 1 }}>Calendar</Text>
         <Button label="‹" variant="secondary" minHeight={36} style={{ width: 36, paddingHorizontal: 0 }} onPress={() => setWeekStart(new Date(weekStart.getTime() - 7 * DAY_MS))} />
         <View style={{ width: 8 }} />

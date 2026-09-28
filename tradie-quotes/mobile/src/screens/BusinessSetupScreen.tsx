@@ -9,8 +9,9 @@ import { Button } from "../components/Button";
 import { SegmentedControl } from "../components/SegmentedControl";
 import { Sheet } from "../components/Sheet";
 import { Tag } from "../components/Tag";
+import { AppHeader } from "../components/AppHeader";
 import { Toast, useToast } from "../components/Toast";
-import type { TabScreenProps } from "../navigation/types";
+import type { RootScreenProps } from "../navigation/types";
 
 function Field({ label, value, onChangeText, onBlur }: { label: string; value: string; onChangeText: (v: string) => void; onBlur: () => void }) {
   const theme = useTheme();
@@ -36,7 +37,7 @@ function Field({ label, value, onChangeText, onBlur }: { label: string; value: s
   );
 }
 
-export function BusinessSetupScreen({ navigation }: TabScreenProps<"Business">) {
+export function BusinessSetupScreen({ navigation }: RootScreenProps<"Business">) {
   const theme = useTheme();
   const { mode, setMode } = useThemeMode();
   const business = useBusiness();
@@ -93,6 +94,13 @@ export function BusinessSetupScreen({ navigation }: TabScreenProps<"Business">) 
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.bg }} edges={["top", "left", "right"]}>
+      <AppHeader
+        title="Business"
+        actions={[
+          { label: "Add employee", onPress: () => setInviteOpen(true) },
+          { label: "Safety library (JSA/SWMS)", onPress: () => navigation.navigate("SafetyLibrary") },
+        ]}
+      />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
         <Text style={{ fontFamily: theme.fonts.heading, fontWeight: "600", fontSize: 26, color: theme.colors.text }}>Business</Text>
 
