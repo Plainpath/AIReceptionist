@@ -96,6 +96,40 @@ invoicesRouter.post("/:id/payments", async (req: AuthedRequest, res) => {
   res.status(201).json({ payment, status, balance: Math.max(0, t.balance) });
 });
 
+const variationLineSchema = z.object({
+  label: z.string().min(1),
+  qty: z.number().positive(),
+  unit: z.string().min(1),
+  rate: z.number().nonnegative(),
+});
+
+invoicesRouter.post("/:id/lines/bulk", async (req: AuthedRequest, res) => {
+  const parsed = z.array(variationLineSchema).safeParse(req.body.lines);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  const invoice = await prisma.invoice.findFirst({ where: { id: req.params.id, businessId: req.auth!.businessId } });
+  if (!invoice) return res.status(404).json({ error: "Not found" });
+
+  const count = await prisma.invoiceLine.count({ where: { invoiceId: invoice.id } });
+  const created = await prisma.$transaction(
+    parsed.data.map((l, i) =>
+      prisma.invoiceLine.create({ data: { ...l, invoiceId: invoice.id, sortOrder: count + i, isVariation: true } })
+    )
+  );
+
+  await prisma.activityEvent.create({
+    data: {
+      businessId: req.auth!.businessId,
+      clientId: invoice.clientId,
+      kind: "Variation added",
+      text: `${created.length} variation${created.length === 1 ? "" : "s"} added to ${invoice.ref}: ${parsed.data.map((l) => l.label).join(", ")}.`,
+      invoiceId: invoice.id,
+    },
+  });
+
+  res.status(201).json(created);
+});
+
 invoicesRouter.get("/:id/pdf", async (req: AuthedRequest, res) => {
   const business = await prisma.business.findUniqueOrThrow({ where: { id: req.auth!.businessId } });
   const invoice = await prisma.invoice.findFirst({

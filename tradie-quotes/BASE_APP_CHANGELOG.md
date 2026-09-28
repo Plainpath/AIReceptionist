@@ -24,6 +24,19 @@ committed.
   removed `mobile/src/navigation/TabBarIcon.tsx` (dead code).
   Commit: (pending — see next `git log` on this branch)
 
+- **2026-09-30** — Added invoice variations: a "Variations" button on the
+  invoice preview (only while outstanding) opens the same price-book
+  multi-select sheet used in the quote builder, and adds selected items as
+  new invoice lines tagged `isVariation`. Tag shows on the in-app preview and
+  the real PDF (small accent-colored "VARIATION" label under the line).
+  Generic invoicing concept (extra work billed after the original invoice),
+  not plumbing-specific — worth porting back to `tradie-quotes-app`.
+  Files: `server/prisma/schema.prisma` (`InvoiceLine.isVariation`),
+  `server/src/routes/invoices.ts` (`POST /invoices/:id/lines/bulk`),
+  `server/src/pdf/renderDocPdf.ts`, `mobile/src/api/{hooks,types}.ts`,
+  `mobile/src/screens/PdfPreviewScreen.tsx`.
+  Commit: (pending — see next `git log` on this branch)
+
 - **2026-09-30** — Fixed the quote/invoice preview ("paper" document mock)
   rendering unreadable in dark mode: it used theme-driven text colors on a
   hardcoded white page background, so dark-mode text (near-white) was

@@ -160,14 +160,15 @@ model Invoice {
 }
 
 model InvoiceLine {
-  id        String  @id @default(cuid())
-  invoiceId String
-  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  label     String
-  qty       Float
-  unit      String
-  rate      Float
-  sortOrder Int     @default(0)
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  label       String
+  qty         Float
+  unit        String
+  rate        Float
+  sortOrder   Int     @default(0)
+  isVariation Boolean @default(false)
 }
 
 model Payment {

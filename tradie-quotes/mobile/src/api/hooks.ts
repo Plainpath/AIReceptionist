@@ -384,6 +384,18 @@ export function useSendInvoice() {
   });
 }
 
+export function useAddInvoiceVariations(invoiceId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (lines: { label: string; qty: number; unit: string; rate: number }[]) =>
+      (await api.post(`/invoices/${invoiceId}/lines/bulk`, { lines })).data,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["invoices", invoiceId] });
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+    },
+  });
+}
+
 export function useRecordPayment(invoiceId: string) {
   const qc = useQueryClient();
   return useMutation({

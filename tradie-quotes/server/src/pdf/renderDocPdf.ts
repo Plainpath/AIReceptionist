@@ -2,7 +2,7 @@ import PDFDocument from "pdfkit";
 import { Response } from "express";
 import { totals } from "../lib/money";
 
-type Line = { label: string; qty: number; unit: string; rate: number };
+type Line = { label: string; qty: number; unit: string; rate: number; isVariation?: boolean };
 type Business = {
   name: string;
   abn: string;
@@ -117,6 +117,11 @@ export function renderQuotePdf(
     pdf.text(`${l.qty} ${l.unit}`, 340, y, { width: 50, align: "right" });
     pdf.text(money(l.rate), 390, y, { width: 70, align: "right" });
     pdf.text(money(amount), 470, y, { width: 85, align: "right" });
+    if (l.isVariation) {
+      pdf.fontSize(7.5).fillColor(accent).text("VARIATION", 65, y + 12);
+      pdf.fontSize(10).fillColor("#111");
+      y += 12;
+    }
     y += 20;
   });
 

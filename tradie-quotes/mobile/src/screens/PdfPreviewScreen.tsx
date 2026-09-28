@@ -3,7 +3,7 @@ import { ActivityIndicator, Linking, ScrollView, Share, Text, TextInput, View } 
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 import { useTheme } from "../theme/ThemeProvider";
-import { useBusiness, useInvoice, useQuote, useRecordPayment, useSendInvoice, useSendQuote } from "../api/hooks";
+import { useAddInvoiceVariations, useBusiness, useInvoice, usePriceBook, useQuote, useRecordPayment, useSendInvoice, useSendQuote } from "../api/hooks";
 import { BlueprintBox } from "../components/Blueprint";
 import { Tag } from "../components/Tag";
 import { Button } from "../components/Button";
@@ -30,9 +30,13 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
   const sendQuote = useSendQuote();
   const sendInvoice = useSendInvoice();
   const recordPayment = useRecordPayment(invoiceId || "");
+  const priceBook = usePriceBook();
+  const addVariations = useAddInvoiceVariations(invoiceId || "");
   const { toast, flash } = useToast();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [payOpen, setPayOpen] = useState(false);
+  const [variationsOpen, setVariationsOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [customAmount, setCustomAmount] = useState("");
   const [sending, setSending] = useState(false);
   const [resending, setResending] = useState(false);
@@ -76,6 +80,29 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
   const hostedLink = (token: string) => `${API_URL}/public/${isInvoice ? "invoices" : "quotes"}/${token}`;
 
   const outstanding = isInvoice && doc!.status !== "Paid";
+
+  const selectedItems = (priceBook.data || []).filter((i) => selectedIds.has(i.id));
+  const selectedTotal = selectedItems.reduce((t, i) => t + i.rate, 0);
+  const toggleSelect = (id: string) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const addSelectedVariations = () => {
+    if (selectedItems.length === 0) return;
+    addVariations.mutate(
+      selectedItems.map((i) => ({ label: i.label, qty: 1, unit: i.unit, rate: i.rate })),
+      {
+        onSuccess: () => {
+          setSelectedIds(new Set());
+          setVariationsOpen(false);
+          flash(`${selectedItems.length} variation${selectedItems.length === 1 ? "" : "s"} added`);
+        },
+      }
+    );
+  };
 
   const onResend = async () => {
     setResending(true);
@@ -221,16 +248,23 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
               <Text style={{ width: 60, fontFamily: theme.fonts.body, fontSize: 8.5, color: PAPER.label, textAlign: "right" }}>AMOUNT</Text>
             </View>
             {lines.map((l, i) => (
-              <View key={l.id} style={{ flexDirection: "row", paddingVertical: 6 }}>
-                <Text style={{ width: 18, fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.label }}>{i + 1}</Text>
-                <Text style={{ flex: 1, fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text }}>{l.label}</Text>
-                <Text style={{ width: 40, fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text, textAlign: "right" }}>
-                  {l.qty} {l.unit}
-                </Text>
-                <Text style={{ width: 55, fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text, textAlign: "right" }}>{aud(l.rate, true)}</Text>
-                <Text style={{ width: 60, fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text, textAlign: "right" }}>
-                  {aud(l.qty * l.rate, true)}
-                </Text>
+              <View key={l.id} style={{ paddingVertical: 6 }}>
+                <View style={{ flexDirection: "row" }}>
+                  <Text style={{ width: 18, fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.label }}>{i + 1}</Text>
+                  <Text style={{ flex: 1, fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text }}>{l.label}</Text>
+                  <Text style={{ width: 40, fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text, textAlign: "right" }}>
+                    {l.qty} {l.unit}
+                  </Text>
+                  <Text style={{ width: 55, fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text, textAlign: "right" }}>{aud(l.rate, true)}</Text>
+                  <Text style={{ width: 60, fontFamily: theme.fonts.body, fontSize: 11, color: PAPER.text, textAlign: "right" }}>
+                    {aud(l.qty * l.rate, true)}
+                  </Text>
+                </View>
+                {l.isVariation && (
+                  <Text style={{ marginLeft: 18, fontFamily: theme.fonts.body, fontSize: 8, letterSpacing: 1, textTransform: "uppercase", color: theme.colors.accent.accent, marginTop: 1 }}>
+                    Variation
+                  </Text>
+                )}
               </View>
             ))}
           </View>
@@ -287,23 +321,28 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
         </BlueprintBox>
       </ScrollView>
 
-      <View style={{ borderTopWidth: 1, borderTopColor: theme.colors.divider, padding: 16, flexDirection: "row", gap: 8 }}>
-        {!isInvoice && (
-          <Button label="Edit" variant="secondary" minHeight={44} onPress={() => navigation.navigate("QuoteBuilder", { quoteId: quoteId })} />
-        )}
+      <View style={{ borderTopWidth: 1, borderTopColor: theme.colors.divider, padding: 16, gap: 8 }}>
         {outstanding && (
-          <Button label="Record payment" variant="secondary" minHeight={44} onPress={() => setPayOpen(true)} />
+          <Button label="Variations" variant="secondary" minHeight={44} onPress={() => setVariationsOpen(true)} />
         )}
-        {outstanding && (
-          <Button label="Resend invoice" variant="secondary" flex minHeight={44} disabled={resending} onPress={onResend} />
-        )}
-        <Button
-          label={isInvoice ? "Send invoice" : "Send quote"}
-          variant="primary"
-          flex={!outstanding}
-          minHeight={44}
-          onPress={() => setSheetOpen(true)}
-        />
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          {!isInvoice && (
+            <Button label="Edit" variant="secondary" minHeight={44} onPress={() => navigation.navigate("QuoteBuilder", { quoteId: quoteId })} />
+          )}
+          {outstanding && (
+            <Button label="Record payment" variant="secondary" minHeight={44} onPress={() => setPayOpen(true)} />
+          )}
+          {outstanding && (
+            <Button label="Resend invoice" variant="secondary" flex minHeight={44} disabled={resending} onPress={onResend} />
+          )}
+          <Button
+            label={isInvoice ? "Send invoice" : "Send quote"}
+            variant="primary"
+            flex={!outstanding}
+            minHeight={44}
+            onPress={() => setSheetOpen(true)}
+          />
+        </View>
       </View>
 
       <Sheet visible={sheetOpen} onClose={() => setSheetOpen(false)}>
@@ -401,6 +440,77 @@ export function PdfPreviewScreen({ route, navigation }: RootScreenProps<"PdfPrev
               setPayOpen(false);
             }}
           />
+        </Sheet>
+      )}
+
+      {outstanding && (
+        <Sheet visible={variationsOpen} onClose={() => setVariationsOpen(false)}>
+          <Text style={{ fontFamily: theme.fonts.heading, fontSize: 19, color: theme.colors.text }}>Add variation</Text>
+          <Text style={{ fontFamily: theme.fonts.body, fontSize: 12.5, color: theme.colors.neutral[700], marginTop: 3 }}>
+            Extra work added after the original invoice — each item is added as its own line, tagged "Variation".
+          </Text>
+          <ScrollView style={{ maxHeight: 380, marginTop: 12 }}>
+            <BlueprintBox>
+              {(priceBook.data || []).map((item, i) => {
+                const selected = selectedIds.has(item.id);
+                return (
+                  <Button
+                    key={item.id}
+                    variant="ghost"
+                    minHeight={0}
+                    style={{
+                      borderWidth: 0,
+                      borderTopWidth: i === 0 ? 0 : 1,
+                      borderTopColor: theme.colors.divider,
+                      justifyContent: "flex-start",
+                      paddingHorizontal: 11,
+                      paddingVertical: 12,
+                      backgroundColor: selected ? `${theme.colors.accent.accent}14` : "transparent",
+                    }}
+                    onPress={() => toggleSelect(item.id)}
+                  >
+                    <View
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderWidth: 1.5,
+                        borderColor: selected ? theme.colors.accent.accent : theme.colors.divider,
+                        backgroundColor: selected ? theme.colors.accent.accent : "transparent",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {selected && <Text style={{ color: "#fff", fontSize: 12, lineHeight: 12 }}>✓</Text>}
+                    </View>
+                    <Text style={{ flex: 1, fontFamily: theme.fonts.body, fontSize: 13, color: theme.colors.text }}>
+                      {item.label}
+                    </Text>
+                    <Text style={{ fontFamily: theme.fonts.heading, fontSize: 13, color: theme.colors.text }}>
+                      {aud(item.rate)} / {item.unit}
+                    </Text>
+                  </Button>
+                );
+              })}
+              {(priceBook.data || []).length === 0 && (
+                <Text style={{ padding: 20, textAlign: "center", fontFamily: theme.fonts.body, fontSize: 12.5, color: theme.colors.neutral[600] }}>
+                  No price book items yet.
+                </Text>
+              )}
+            </BlueprintBox>
+          </ScrollView>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 14 }}>
+            <Text style={{ flex: 1, fontFamily: theme.fonts.body, fontSize: 12.5, color: theme.colors.neutral[700] }}>
+              {selectedItems.length} selected · {aud(selectedTotal)}
+            </Text>
+            <Button label="Cancel" variant="secondary" minHeight={40} onPress={() => setVariationsOpen(false)} />
+            <Button
+              label="Add variation"
+              variant="primary"
+              minHeight={40}
+              disabled={selectedItems.length === 0 || addVariations.isPending}
+              onPress={addSelectedVariations}
+            />
+          </View>
         </Sheet>
       )}
       <Toast message={toast} />

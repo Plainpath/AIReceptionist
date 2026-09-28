@@ -54,7 +54,7 @@ export type PriceBookItem = { id: string; label: string; rate: number; unit: str
 
 export type QuoteShape = "Flat price" | "Labour + materials" | "Itemised";
 
-export type Line = { id: string; label: string; qty: number; unit: string; rate: number };
+export type Line = { id: string; label: string; qty: number; unit: string; rate: number; isVariation?: boolean };
 
 export type Totals = { sub: number; gst: number; total: number; deposit: number; balance: number };
 
