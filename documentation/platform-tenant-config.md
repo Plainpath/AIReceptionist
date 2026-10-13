@@ -73,6 +73,91 @@ npx prisma migrate deploy
 npm start
 ```
 
+## Running the platform on the worker host
+
+Until the platform gets its own host, it can run beside the voice worker on
+the same Linux server, listening on `127.0.0.1` only. Nothing is exposed to
+the internet, and the worker reaches it over loopback (plain `http` is
+allowed to localhost only). If the platform or Postgres stops, calls keep
+working from the last-good cache or YAML.
+
+Expect roughly 300 MB of extra memory for Postgres and the platform process.
+Check headroom with `free -m` first.
+
+The paths below assume the checkout is `/opt/AIReceptionist`, owned by the
+`receptionist` service user. Adjust to match the existing worker unit.
+
+```bash
+# 1. Postgres, local only (Ubuntu's default listens on localhost).
+sudo apt-get install -y postgresql
+sudo -u postgres createuser --pwprompt platform
+sudo -u postgres createdb -O platform platform
+
+# 2. Node 22 LTS (NodeSource or your distro's package), then dependencies.
+cd /opt/AIReceptionist/platform
+sudo -u receptionist npm ci --omit=dev --include=optional
+sudo -u receptionist cp .env.example .env
+sudo chmod 600 .env
+# Edit .env: DATABASE_URL with the password above, and two different
+# 32+ character tokens, e.g. from: openssl rand -hex 32
+sudo -u receptionist npx prisma migrate deploy
+```
+
+`npm ci --omit=dev` skips the `prisma` CLI. Run plain `npm ci` instead if
+`npx prisma migrate deploy` is not found.
+
+`/etc/systemd/system/plainpath-platform.service`:
+
+```ini
+[Unit]
+Description=PlainPath platform API
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=receptionist
+Group=receptionist
+WorkingDirectory=/opt/AIReceptionist/platform
+EnvironmentFile=/opt/AIReceptionist/platform/.env
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now plainpath-platform
+curl -s http://127.0.0.1:8787/healthz     # {"ok":true}
+```
+
+Worker `.env` (the switch stays off until a tenant is listed):
+
+```bash
+RECEPTIONIST_PLATFORM_URL=http://127.0.0.1:8787
+RECEPTIONIST_PLATFORM_TOKEN=<PLATFORM_WORKER_TOKEN>
+RECEPTIONIST_PLATFORM_ADMIN_TOKEN=<PLATFORM_ADMIN_TOKEN>   # for import/diff only
+# RECEPTIONIST_PLATFORM_TENANTS=                            # set in "Moving a tenant"
+```
+
+Nightly backup (`crontab -e` as the `postgres` user); keep a copy off the
+server too:
+
+```cron
+15 3 * * * pg_dump -Fc platform > /var/backups/platform-$(date +\%a).dump
+```
+
+This keeps seven rolling daily dumps. Restore with
+`pg_restore -d platform --clean <file>`.
+
+Upgrading: `git pull`, `npm ci`, `npx prisma migrate deploy`, then
+`systemctl restart plainpath-platform`.
+
 ## API
 
 All routes except `/healthz` need `Authorization: Bearer <token>`.
