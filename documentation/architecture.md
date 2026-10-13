@@ -14,6 +14,12 @@ receptionist/
 ├── lifecycle.py             CallLifecycle: per-call metadata owner, close-event fan-out
 ├── info_packets.py          Consent-gated caller packet email helper
 ├── voice_auth.py            Per-business Realtime bearer resolver (`voice.auth`)
+├── tenant_config/           Where a tenant's BusinessConfig comes from
+│   ├── settings.py          PlatformSettings (RECEPTIONIST_PLATFORM_* env)
+│   ├── client.py            Platform API client (async fetch + admin client)
+│   ├── source.py            resolve_business_config: platform → last-good cache → YAML
+│   ├── importer.py          YAML → stored document, inline-secret scan, equivalence check
+│   └── __main__.py          python -m receptionist.tenant_config import|diff|check
 ├── voice/                   OpenAI voice auth setup CLI
 │   ├── setup_cli.py         python -m receptionist.voice setup <business>
 │   └── __main__.py          CLI dispatcher
@@ -73,7 +79,7 @@ receptionist/
 3. `@server.rtc_session(agent_name=...)` fires `handle_call(ctx)`
 
 ### 2. Session initialization
-1. `load_business_config(ctx)` picks a YAML based on `job.metadata["config"]` (or first YAML as fallback)
+1. `load_business_config(ctx)` (async) takes the slug from `job.metadata["config"]` and calls `resolve_business_config`: YAML by default, or, for tenants listed in `RECEPTIONIST_PLATFORM_TENANTS`, the platform API, then its last-good cache, then YAML (see [Platform Tenant Config](platform-tenant-config.md)). With no slug it uses the first YAML.
 2. The process has already started an idempotent generation watchdog before LiveKit worker registration when the restart launcher provides a worker generation token. The watchdog exits if `agent.generation` changes or disappears, preventing stale local LiveKit `dev` workers from handling later calls after a restart.
 3. `CallLifecycle(config, call_id, caller_phone)` is constructed; `caller_phone` is pulled from SIP participant metadata when available (`sip.phoneNumber`, `sip.fromUser`, `sip.from`, or `sip_<digits>` identity fallback), and filled later from the `participant_connected` event if the SIP participant had not joined yet
 4. `AgentSession` created with `openai.realtime.RealtimeModel(model=config.voice.model, voice=config.voice.voice_id, api_key=await resolve_voice_bearer_async(config.voice.auth))`; explicit `oauth_codex` tokens refresh before session construction when needed. **Deprecated (2026-06-03):** the `oauth_codex` auth type no longer works against the GA Realtime API — OpenAI sunset the Realtime Beta endpoint and the GA endpoint rejects ChatGPT/Codex OAuth tokens (the handshake fails with HTTP 500, so the call connects but the caller hears dead air). Use `voice.auth.type: api_key` with a standard `sk-` key in `OPENAI_API_KEY` and a current model such as `gpt-realtime-2.1`. The refresh path is retained only for historical context; see `documentation/troubleshooting.md` ("Realtime handshake fails with 500 / Beta API sunset"). `voice.idle.away_seconds` feeds `AgentSession.user_away_timeout`, and `voice.idle.absolute_silence_seconds` can add a wall-clock final-transcript fallback for SIP trunks that send comfort noise.
@@ -130,6 +136,17 @@ receptionist/
 4. The LiveKit RTC job keeps the event loop alive until the room closes; close-time artifact work runs from the scheduled task
 
 ## Key design decisions
+
+### Tenant config — platform first, YAML always available
+
+Tenant config is moving from hand-edited YAML on the server to the platform
+database (`platform/`). The worker never reads the database directly; it
+fetches the raw document over HTTP with a read-only token and validates it
+with the same `BusinessConfig` model. `${ENV_VAR}` placeholders are stored
+unexpanded, so secrets never leave the worker host. Opt-in is per tenant, and
+any platform failure falls back to the last config the platform served, then
+to YAML, so a platform outage cannot drop calls for a tenant that still has
+either. See [Platform Tenant Config](platform-tenant-config.md).
 
 ### AI summary — generated once per call, before channel fan-out
 

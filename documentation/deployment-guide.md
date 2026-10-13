@@ -79,6 +79,15 @@ Required for API-key auth only:
 > real `sk-` key and use `voice.auth.type: "api_key"`. See
 > [ChatGPT OAuth Setup](chatgpt-oauth-setup.md) for background.
 
+Optional, to serve tenants from the platform database (see
+[Platform Tenant Config](platform-tenant-config.md)):
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `RECEPTIONIST_PLATFORM_URL` | Platform API base URL (https, or http to localhost) | `http://127.0.0.1:8787` |
+| `RECEPTIONIST_PLATFORM_TOKEN` | Platform worker token (read-only) | |
+| `RECEPTIONIST_PLATFORM_TENANTS` | Slugs to load from the platform, or `*`; unset = YAML for all | `acme` |
+
 **Security**: Never commit `.env` to version control. The `.env.example` file contains placeholder values and is safe to commit.
 
 ---

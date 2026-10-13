@@ -999,6 +999,15 @@ class BusinessConfig(BaseModel):
             data = yaml.safe_load(yaml_string)
         except yaml.YAMLError as e:
             raise ConfigError(_friendly_yaml_error(e, yaml_string)) from e
+        return cls.from_raw(data)
+
+    @classmethod
+    def from_raw(cls, data: object) -> BusinessConfig:
+        """Validate an already-parsed config document.
+
+        ``data`` is the raw mapping as stored (YAML or the platform database),
+        with ``${ENV_VAR}`` placeholders still in it; they are expanded here.
+        """
         data = _interpolate_env_vars(data)
         return cls.model_validate(data)
 

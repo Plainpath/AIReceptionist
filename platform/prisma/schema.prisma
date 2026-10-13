@@ -1,0 +1,81 @@
+// PlainPath platform database.
+//
+// Milestone 1 scope: tenants and per-component configuration. The AI
+// secretary (voice worker in ../receptionist) reads its BusinessConfig from
+// ComponentConfig(component = ai_secretary). Every write also lands in
+// ComponentConfigRevision so a bad edit to a live tenant can be rolled back.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TenantStatus {
+  prospect
+  onboarding
+  live
+  paused
+  cancelled
+}
+
+enum Component {
+  ai_secretary
+  website
+  quotes
+  web_chat
+  reviews
+}
+
+model Tenant {
+  id        String   @id @default(uuid()) @db.Uuid
+  // Same rule as the voice worker's config name: ^[a-zA-Z0-9_-]+$
+  slug      String   @unique
+  name      String
+  status    TenantStatus @default(onboarding)
+  plan      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  componentConfigs ComponentConfig[]
+
+  @@map("tenants")
+}
+
+model ComponentConfig {
+  id        String    @id @default(uuid()) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  component Component
+  // Raw config document. For ai_secretary this is the BusinessConfig YAML as
+  // a JSON object with ${ENV_VAR} placeholders left intact: secrets stay in
+  // the worker's environment and are never stored here.
+  config    Json
+  version   Int       @default(1)
+  updatedBy String    @map("updated_by")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  revisions ComponentConfigRevision[]
+
+  @@unique([tenantId, component])
+  @@map("component_configs")
+}
+
+model ComponentConfigRevision {
+  id                String   @id @default(uuid()) @db.Uuid
+  componentConfigId String   @map("component_config_id") @db.Uuid
+  version           Int
+  config            Json
+  updatedBy         String   @map("updated_by")
+  note              String?
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  componentConfig ComponentConfig @relation(fields: [componentConfigId], references: [id], onDelete: Cascade)
+
+  @@unique([componentConfigId, version])
+  @@map("component_config_revisions")
+}

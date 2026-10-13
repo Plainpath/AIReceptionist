@@ -60,6 +60,10 @@ config/businesses/smith-law-firm.yaml
 config/businesses/downtown_clinic.yaml
 ```
 
+A tenant can instead be served from the PlainPath platform database, using the
+same schema documented here; see [Platform Tenant Config](platform-tenant-config.md).
+The YAML file remains the fallback.
+
 **Slug validation**: Must match `^[a-zA-Z0-9_-]+$`. No spaces, no path separators, no special characters. This is enforced for security (path traversal prevention).
 
 The checked-in `example-workers-comp.yaml` is a concrete RingCentral/Twilio

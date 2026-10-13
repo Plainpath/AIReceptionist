@@ -29,6 +29,7 @@ Traditional IVR systems frustrate callers with rigid menus. Human receptionists 
 | [Function Tools Reference](function-tools-reference.md) | Detailed reference for each agent function tool: `lookup_faq`, `transfer_call`, `take_message`, `get_business_hours`, calendar booking, intake tools, and info packets. |
 | [Intake Setup](intakes-setup.md) | Configure structured new-client intakes by phone, including per-case-type question scripts, Spanish-language calls, intake email delivery, and optional post-intake packet emails. |
 | [Troubleshooting](troubleshooting.md) | Common issues, error messages, and their solutions. |
+| [Platform Tenant Config](platform-tenant-config.md) | Load a tenant's config from the PlainPath platform database instead of YAML, with a last-good cache and YAML fallback; import and diff tooling. |
 | [Multi-Business Setup](multi-business-setup.md) | How to run a single deployment that handles calls for multiple businesses with different phone numbers and configurations. |
 
 ---

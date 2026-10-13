@@ -137,6 +137,7 @@ AIReceptionist/
 │   ├── booking/                      # Google Calendar booking integration
 │   ├── recording/                    # LiveKit Egress recording helpers
 │   ├── retention/                    # Artifact sweeper CLI
+│   ├── tenant_config/                # Platform / cache / YAML config loading + import CLI
 │   └── transcript/                   # Transcript capture, formatting, writing
 │
 ├── config/                           # Configuration directory
@@ -151,7 +152,10 @@ AIReceptionist/
 │   ├── booking/                      # Calendar booking tests
 │   ├── recording/                    # Recording tests
 │   ├── retention/                    # Sweeper tests
+│   ├── tenant_config/                # Platform config loading and import tests
 │   └── transcript/                   # Transcript tests
+│
+├── platform/                         # Platform API (TypeScript, Prisma, Postgres)
 │
 ├── messages/                         # Default message storage directory
 │
@@ -207,6 +211,21 @@ python -m pytest tests/ -v
 ```
 
 Expected output: all tests pass. The exact count changes as features are added.
+
+### Platform service tests
+
+The platform tests need a disposable Postgres database:
+
+```bash
+cd platform
+npm ci
+export DATABASE_URL=postgresql://user:pass@localhost:5432/platform_test
+npx prisma migrate deploy
+npm run typecheck
+npm test
+```
+
+CI runs these against a `postgres:16` service container.
 
 ### Running Specific Test Files
 

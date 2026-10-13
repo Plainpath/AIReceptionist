@@ -55,7 +55,7 @@ When a call arrives, the agent determines which business configuration to use th
 3. **`load_business_config(ctx)`** in `agent.py`:
    a. Reads `ctx.job.metadata` and looks for the `"config"` key.
    b. Validates the slug against `^[a-zA-Z0-9_-]+$` (security: path traversal protection).
-   c. Loads `config/businesses/<slug>.yaml`.
+   c. Loads `config/businesses/<slug>.yaml`, unless the slug is listed in `RECEPTIONIST_PLATFORM_TENANTS`, in which case it loads from the platform first (see [Platform Tenant Config](platform-tenant-config.md)).
 4. If no metadata is found, the agent **falls back** to the first YAML file (alphabetically) in `config/businesses/`.
 
 ### The Metadata Flow
