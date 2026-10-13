@@ -9,7 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No unreleased changes yet._
+### Added
+- Platform service (`platform/`, TypeScript + Prisma + Postgres) storing
+  tenants and per-component config with revision history, rollback, optimistic
+  concurrency, and separate admin and read-only worker tokens.
+- The voice worker can load a tenant's config from the platform, opted in per
+  tenant with `RECEPTIONIST_PLATFORM_TENANTS`. Fallback order is platform,
+  last-good cache (`config/platform-cache/`), then YAML. With the variable
+  unset, behaviour is unchanged.
+- `python -m receptionist.tenant_config import|diff|check` to move a tenant
+  YAML into the platform. Import refuses inline secrets and proves the stored
+  form validates to an identical `BusinessConfig`.
+- `BusinessConfig.from_raw()` validates an already-parsed config document.
+
+### Changed
+- `load_business_config` in `agent.py` is now async and loads YAML off the
+  event loop.
 
 ---
 

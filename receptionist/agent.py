@@ -34,6 +34,7 @@ from receptionist.lifecycle import CallLifecycle
 from receptionist.messaging.dispatcher import Dispatcher
 from receptionist.messaging.models import DispatchContext, Message
 from receptionist.prompts import build_system_prompt
+from receptionist.tenant_config import resolve_business_config
 from receptionist.voice_auth import resolve_voice_bearer_async
 
 load_dotenv(".env.local")
@@ -646,8 +647,12 @@ def _resolve_relative_date(preferred_date: str, now: datetime) -> str:
     return preferred_date
 
 
-def load_business_config(ctx: agents.JobContext) -> BusinessConfig:
-    """Load business config based on job metadata or default to first config found."""
+async def load_business_config(ctx: agents.JobContext) -> BusinessConfig:
+    """Load business config based on job metadata or default to first config found.
+
+    A named config goes through ``resolve_business_config``: YAML unless the
+    tenant is opted in to the platform via RECEPTIONIST_PLATFORM_TENANTS.
+    """
     metadata = {}
     if ctx.job.metadata:
         try:
@@ -660,15 +665,15 @@ def load_business_config(ctx: agents.JobContext) -> BusinessConfig:
     if config_name:
         if not re.match(r"^[a-zA-Z0-9_-]+$", config_name):
             raise ValueError(f"Invalid config name: {config_name!r}")
-        config_path = DEFAULT_CONFIG_DIR / f"{config_name}.yaml"
-    else:
-        yaml_files = sorted(DEFAULT_CONFIG_DIR.glob("*.yaml"))
-        if not yaml_files:
-            raise FileNotFoundError(f"No config files found in {DEFAULT_CONFIG_DIR}")
-        config_path = yaml_files[0]
-        logger.info(f"No config specified, using: {config_path.name}")
+        loaded = await resolve_business_config(config_name, DEFAULT_CONFIG_DIR)
+        return loaded.config
 
-    return load_config(config_path)
+    yaml_files = sorted(DEFAULT_CONFIG_DIR.glob("*.yaml"))
+    if not yaml_files:
+        raise FileNotFoundError(f"No config files found in {DEFAULT_CONFIG_DIR}")
+    config_path = yaml_files[0]
+    logger.info(f"No config specified, using: {config_path.name}")
+    return await asyncio.to_thread(load_config, config_path)
 
 
 def _get_caller_identity(ctx: agents.JobContext) -> str:
@@ -2397,7 +2402,7 @@ async def handle_call(ctx: agents.JobContext):
     _trace_stage("handle_call_entered", getattr(getattr(ctx, "room", None), "name", "?"))
     _start_generation_watchdog_once()
     _trace_stage("after_watchdog_start", getattr(getattr(ctx, "room", None), "name", "?"))
-    config = load_business_config(ctx)
+    config = await load_business_config(ctx)
     _trace_stage("after_load_config", getattr(getattr(ctx, "room", None), "name", "?"))
 
     lifecycle = CallLifecycle(

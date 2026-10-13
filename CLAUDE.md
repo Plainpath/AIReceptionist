@@ -45,6 +45,7 @@ AIReceptionist/
 │   ├── messaging/               # Message model + channels (file, webhook, email) + failure records
 │   ├── recording/               # Call recording (local / S3)
 │   ├── retention/               # Artifact retention sweeper
+│   ├── tenant_config/           # Tenant config source: platform API → last-good cache → YAML; import/diff/check CLI
 │   ├── transcript/              # Transcript writers + metadata
 │   └── voice/                   # Voice auth setup CLI
 │
@@ -52,6 +53,7 @@ AIReceptionist/
 │   ├── example-dental.yaml
 │   └── example-workers-comp.yaml
 │
+├── platform/                    # Platform API (TypeScript, Express, Prisma, Postgres): tenants + component config
 ├── tests/                       # pytest suite (~670 tests; mirrors the package layout)
 ├── documentation/               # Public-facing docs (architecture, config reference, troubleshooting, CHANGELOG, ...)
 ├── scripts/                     # Developer tooling (pre-commit hook, restart/status helpers)
@@ -125,6 +127,7 @@ Whenever ANY file inside `receptionist/` is created, modified, or deleted, the f
 | `receptionist/intakes/`, `receptionist/info_packets.py` | `documentation/intakes-setup.md`, `documentation/function-tools-reference.md` |
 | `receptionist/booking/` | `documentation/google-calendar-setup.md`, `documentation/function-tools-reference.md` |
 | `receptionist/voice_auth.py`, `receptionist/voice/` | `documentation/configuration-reference.md`, `documentation/chatgpt-oauth-setup.md` |
+| `receptionist/tenant_config/`, `platform/` | `documentation/platform-tenant-config.md`, `documentation/architecture.md` |
 | `pyproject.toml` | `documentation/development-guide.md`, `documentation/deployment-guide.md` |
 | `config/businesses/*.yaml` | `documentation/configuration-reference.md`, `documentation/multi-business-setup.md` |
 

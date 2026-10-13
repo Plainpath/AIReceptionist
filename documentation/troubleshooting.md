@@ -130,6 +130,22 @@ hours:
   saturday: "closed"  # Plain lowercase string
 ```
 
+### `tenant_config: platform load failed for <slug>`
+
+**Symptom**: WARNING in the journal; the call still connects.
+
+**Cause**: The tenant is opted in to the platform (`RECEPTIONIST_PLATFORM_TENANTS`)
+but the platform was unreachable, returned an error, or served a config that
+does not validate. The reason is in brackets (`ConnectError`, `ReadTimeout`,
+`HTTP 401`, `not found`, `ValidationError`).
+
+**Solution**: The next lines say which fallback served the call
+(`loaded from platform cache vN`, or `falling back to YAML`). Check the
+platform is running and the worker token matches `PLATFORM_WORKER_TOKEN`.
+For `ValidationError`, run `python -m receptionist.tenant_config diff <slug>`
+on the worker host. To stop using the platform for a tenant, remove it from
+`RECEPTIONIST_PLATFORM_TENANTS` and restart.
+
 ### Config file not found
 
 **Symptom**: Agent starts but uses the wrong config or reports no config found.

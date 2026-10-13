@@ -29,3 +29,6 @@ secrets/*
 
 # Local-only VM provisioning scripts (reference the tenant slug; not for the public repo)
 deploy/
+
+# Last-good tenant config served by the platform (see receptionist/tenant_config).
+config/platform-cache/
